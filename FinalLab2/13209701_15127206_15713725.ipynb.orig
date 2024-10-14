@@ -1,0 +1,3891 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<center> <img src=\"https://miro.medium.com/v2/resize:fit:1200/1*lbDXL0IuitCRz4mpZ7MmfQ.png\" width=55% > </center>\n",
+    "\n",
+    "<br><br>\n",
+    "\n",
+    "<center> \n",
+    "    <font size=\"6\">Final Lab (Part 2): Image Classification using Convolutional Neural Networks </font>\n",
+    "</center>\n",
+    "<center> \n",
+    "    <font size=\"4\">Computer Vision 1 University of Amsterdam</font> \n",
+    "</center>\n",
+    "<center> \n",
+    "    <font size=\"4\">Due 23:59PM, October 18, 2024 (Amsterdam time)</font> \n",
+    "</center>\n",
+    "<center> \n",
+    "    <font size=\"4\"><b>TA's:  Yue, Konrad & Thies</b></font>\n",
+    "</center>\n",
+    "\n",
+    "<br><br>\n",
+    "\n",
+    "***\n",
+    "\n",
+    "<br><br>\n",
+    "\n",
+    "<center>\n",
+    "\n",
+    "Student1 ID: 13209701 \\\n",
+    "Student1 Name: Thomas Brouwer\n",
+    "\n",
+    "Student2 ID: 15127206 \\\n",
+    "Student2 Name: Piotr Sobecki\n",
+    "\n",
+    "Student3 ID: 15713725 \\\n",
+    "Student3 Name: Pedro Pombeiro Curvo\n",
+    "\n",
+    "</center>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### **Coding Guidelines**\n",
+    "\n",
+    "Your code must be handed in this Jupyter notebook, renamed to **StudentID1_StudentID2_StudentID3.ipynb** before the deadline by submitting it to the Canvas Final Lab: Image Classification Assignment. Please also fill out your names and IDs above.\n",
+    "\n",
+    "For full credit, make sure your notebook follows these guidelines:\n",
+    "\n",
+    "- Please express your thoughts **concisely**. The number of words does not necessarily correlate with how well you understand the concepts.\n",
+    "- Understand the problem as much as you can. When answering a question, provide evidence (qualitative and/or quantitative results, references to papers, figures, etc.) to support your arguments. Not everything might be explicitly asked for, so think about what might strengthen your arguments to make the notebook self-contained and complete.\n",
+    "- Tables and figures must be accompanied by a **brief** description. Add a number, a title, and, if applicable, the name and unit of variables in a table, and name and unit of axes and legends in a figure.\n",
+    "\n",
+    "**Late submissions are not allowed.** Assignments submitted after the strict deadline will not be graded. In case of submission conflicts, TAs’ system clock is taken as reference. We strongly recommend submitting well in advance to avoid last-minute system failure issues.\n",
+    "\n",
+    "**Environment:** Since this is a project-based assignment, you are free to use any feature descriptor and machine learning tools (e.g., K-means, SVM). You should use Python for your implementation. You are free to use any Python library for this assignment, but make sure to provide a conda environment file!\n",
+    "\n",
+    "**Plagiarism Note:** Keep in mind that plagiarism (submitted materials which are not your work) is a serious offense and any misconduct will be addressed according to university regulations. This includes using generative tools such as ChatGPT.\n",
+    "\n",
+    "**Ensure that you save all results/answers to the questions (even if you reuse some code).**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### **Report Preparation**\n",
+    "\n",
+    "Your tasks include the following:\n",
+    "\n",
+    "1. **Report Preparation:** For both parts of the final project, students are expected to prepare a report. The report should include all details on implementation approaches, analysis of results for different settings, and visualizations illustrating experiments and performance of your implementation. Grading will be based on the report, so it should be as self-contained as possible. If the report contains faulty results or ambiguities, TAs can refer to your code for clarification. \n",
+    "\n",
+    "2. **Explanation of Results:** Do not just provide numbers without explanation. Discuss different settings to show your understanding of the material and processes involved.\n",
+    "\n",
+    "3. **Quantitative Evaluation:** For quantitative evaluation, you are expected to provide the results based on performance (accuracy, learning loss and learning curves). \n",
+    "\n",
+    "4. **Aim:** Understand the basic Image Classification pipeline using Convolutional Neural Nets (CNN's).\n",
+    "\n",
+    "5. **Working on Assignments:** Students should work in assigned groups for **two** weeks. Any questions can be discussed on ED.\n",
+    "\n",
+    "    - **Submission:** Submit your source code and report together in a zip file (`ID1_ID2_ID3_part2.zip`). The report should be a maximum of 10 pages (single-column, including tables and figures, excluding references and appendix). Express thoughts concisely. Tables and figures must be accompanied by a description. Number them and, if applicable, name variables in tables, and label axes in figures.\n",
+    "\n",
+    "6. **Hyperparameter Search:** In your experiments, remember to perform a hyperparameter search to find the optimal settings for your model(s). Clearly document the search process, the parameters you explored, and how they influenced the performance of your model.\n",
+    "\n",
+    "8. **Format and Testing:** The report should be in **PDF format**, and the code in **.ipynb format**. Test that all functionality works as expected in the notebook."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### **Overview**\n",
+    "\n",
+    "- [Section 1: Image Classification on CIFAR-100 (0 points)](#section-1)\n",
+    "- [Section 2: Visualizing CIFAR-100 Classes and Subclasses (3 points)](#section-2)\n",
+    "- [Section 3: TwoLayerNet Architecture (2 points)](#section-3)\n",
+    "- [Section 4: ConvNet Architecture (2 points)](#section-4)\n",
+    "- [Section 5: Preparation of Training (7 points)](#section-5)\n",
+    "- [Section 6: Training the Networks (5 points)](#section-6)\n",
+    "- [Section 7: Setting Up the Hyperparameters (14 points)](#section-7)\n",
+    "- [Section 8: Visualizing the STL-10 Dataset and Preparing the Data Loader (3 points)](#section-8)\n",
+    "- [Section 9: Fine-tuning ConvNet on STL-10 (14 points)](#section-9)\n",
+    "- [Section 10: Bonus Challenge (optional)](#section-10)\n",
+    "- [Section X: Individual Contribution Report (Mandatory)](#section-x)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### **Section 1: Image Classification on CIFAR-100 (0 points)**\n",
+    "\n",
+    "The goal of this lab is to implement an image classification system using Convolutional Neural Networks (CNNs) that can identify objects from a set of classes in the [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html). You will implement and compare two different architectures: a simple two-layer network and a ConvNet based on the LeNet architecture.\n",
+    "\n",
+    "The CIFAR-100 dataset contains 32x32 pixel RGB images, categorized into 100 different classes. The dataset will be automatically downloaded and loaded using the code provided in this notebook.\n",
+    "\n",
+    "You will train and test your classification system using the entire CIFAR-100 dataset. Ensure that the test images are excluded from training to maintain a fair evaluation of the model's performance."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "<<<<<<< local\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Downloading https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz to ./data/cifar-100-python.tar.gz\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "100%|██████████| 169001437/169001437 [01:20<00:00, 2092478.11it/s]\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Extracting ./data/cifar-100-python.tar.gz to ./data\n",
+      "Files already downloaded and verified\n",
+      "Data loaders for CIFAR-100 are ready for use.\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "=======\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Files already downloaded and verified\n",
+      "Files already downloaded and verified\n",
+      "Data loaders for CIFAR-100 are ready for use.\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      ">>>>>>> remote\n"
+     ]
+    }
+   ],
+   "source": [
+    "import matplotlib.pyplot as plt\n",
+    "from pathlib import Path\n",
+    "from tqdm.auto import tqdm\n",
+    "from timeit import default_timer as timer\n",
+    "import os\n",
+    "import numpy as np\n",
+    "import torch\n",
+    "import torch.nn as nn\n",
+    "import torch.nn.functional as F\n",
+    "import torch.optim as optim\n",
+    "import torchvision\n",
+    "import torchvision.transforms as transforms\n",
+    "from torch.utils.tensorboard import SummaryWriter\n",
+    "\n",
+    "from PIL import Image\n",
+    "from torchinfo import summary\n",
+    "from torch.utils.data import DataLoader, Dataset, random_split\n",
+    "\n",
+    "# Define the transformations\n",
+    "transform = transforms.Compose([\n",
+    "    transforms.ToTensor(),\n",
+    "    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  \n",
+    "])\n",
+    "\n",
+    "# Load the CIFAR-100 training set\n",
+    "train_set = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=transform)\n",
+    "\n",
+    "# Load the CIFAR-100 test set\n",
+    "test_set = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=transform)\n",
+    "\n",
+    "# Create data loaders for the entire CIFAR-100 dataset\n",
+    "train_data_loader = DataLoader(train_set, shuffle=True)\n",
+    "test_data_loader = DataLoader(test_set, shuffle=False)\n",
+    "\n",
+    "# Define CIFAR-100 superclasses and their subclasses\n",
+    "superclasses = {\n",
+    "    'aquatic mammals': ['beaver', 'dolphin', 'otter', 'seal', 'whale'],\n",
+    "    'fish': ['aquarium_fish', 'flatfish', 'ray', 'shark', 'trout'],\n",
+    "    'flowers': ['orchid', 'poppy', 'rose', 'sunflower', 'tulip'],\n",
+    "    'food containers': ['bottle', 'bowl', 'can', 'cup', 'plate'],\n",
+    "    'fruit and vegetables': ['apple', 'mushroom', 'orange', 'pear', 'sweet_pepper'],\n",
+    "    'household electrical devices': ['clock', 'keyboard', 'lamp', 'telephone', 'television'],\n",
+    "    'household furniture': ['bed', 'chair', 'couch', 'table', 'wardrobe'],\n",
+    "    'insects': ['bee', 'beetle', 'butterfly', 'caterpillar', 'cockroach'],\n",
+    "    'large carnivores': ['bear', 'leopard', 'lion', 'tiger', 'wolf'],\n",
+    "    'large man-made outdoor things': ['bridge', 'castle', 'house', 'road', 'skyscraper'],\n",
+    "    'large natural outdoor scenes': ['cloud', 'forest', 'mountain', 'plain', 'sea'],\n",
+    "    'large omnivores and herbivores': ['camel', 'cattle', 'chimpanzee', 'elephant', 'kangaroo'],\n",
+    "    'medium-sized mammals': ['fox', 'porcupine', 'possum', 'raccoon', 'skunk'],\n",
+    "    'non-insect invertebrates': ['crab', 'lobster', 'snail', 'spider', 'worm'],\n",
+    "    'people': ['baby', 'boy', 'girl', 'man', 'woman'],\n",
+    "    'reptiles': ['crocodile', 'dinosaur', 'lizard', 'snake', 'turtle'],\n",
+    "    'small mammals': ['hamster', 'mouse', 'rabbit', 'shrew', 'squirrel'],\n",
+    "    'trees': ['maple_tree', 'oak_tree', 'palm_tree', 'pine_tree', 'willow_tree'],\n",
+    "    'vehicles 1': ['bicycle', 'bus', 'motorcycle', 'pickup_truck', 'train'],\n",
+    "    'vehicles 2': ['lawn_mower', 'rocket', 'streetcar', 'tank', 'tractor']\n",
+    "}\n",
+    "\n",
+    "# List of all CIFAR-100 classes\n",
+    "classes = ('apple', 'aquarium_fish', 'baby', 'bear', 'beaver', 'bed', 'bee', 'beetle', 'bicycle', 'bottle', \n",
+    "           'bowl', 'boy', 'bridge', 'bus', 'butterfly', 'camel', 'can', 'castle', 'caterpillar', 'cattle',\n",
+    "           'chair', 'chimpanzee', 'clock', 'cloud', 'cockroach', 'couch', 'crab', 'crocodile', 'cup', 'dinosaur',\n",
+    "           'dolphin', 'elephant', 'flatfish', 'forest', 'fox', 'girl', 'hamster', 'house', 'kangaroo', 'keyboard',\n",
+    "           'lamp', 'lawn_mower', 'leopard', 'lion', 'lizard', 'lobster', 'man', 'maple_tree', 'motorcycle', 'mountain',\n",
+    "           'mouse', 'mushroom', 'oak_tree', 'orange', 'orchid', 'otter', 'palm_tree', 'pear', 'pickup_truck', 'pine_tree',\n",
+    "           'plain', 'plate', 'poppy', 'porcupine', 'possum', 'rabbit', 'raccoon', 'ray', 'road', 'rocket', 'rose', 'sea',\n",
+    "           'seal', 'shark', 'shrew', 'skunk', 'skyscraper', 'snail', 'snake', 'spider', 'squirrel', 'streetcar', 'sunflower', \n",
+    "           'sweet_pepper', 'table', 'tank', 'telephone', 'television', 'tiger', 'tractor', 'train', 'trout', 'tulip', \n",
+    "           'turtle', 'wardrobe', 'whale', 'willow_tree', 'wolf', 'woman', 'worm')\n",
+    "\n",
+    "# Create a mapping of class names to their indices\n",
+    "class_to_idx = {cls_name: idx for idx, cls_name in enumerate(classes)}\n",
+    "\n",
+    "# Create a mapping of superclasses to their corresponding class indices\n",
+    "superclass_to_indices = {supcls: [class_to_idx[cls] for cls in subclasses] for supcls, subclasses in superclasses.items()}\n",
+    "\n",
+    "print(\"Data loaders for CIFAR-100 are ready for use.\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-2\"></a>\n",
+    "### **Section 2: Visualizing CIFAR-100 Classes and Subclasses (3 points)**\n",
+    "\n",
+    "In this section, you will implement a function to visualize the CIFAR-100 dataset, including **all** superclasses and their corresponding subclasses. Your implementation should provide a clear and organized overview of the dataset's diversity.\n",
+    "\n",
+    "You add the figure(s) to appendix of your report and refer to it in the main text."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.plotly.v1+json": {
+       "config": {
+        "plotlyServerURL": "https://plot.ly"
+       },
+       "data": [
+        {
+         "branchvalues": "total",
+         "customdata": [
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ],
+          [
+           2500,
+           500,
+           3000
+          ]
+         ],
+         "domain": {
+          "x": [
+           0,
+           1
+          ],
+          "y": [
+           0,
+           1
+          ]
+         },
+         "hovertemplate": "labels=%{label}<br>Value_sum=%{value}<br>parent=%{parent}<br>id=%{id}<br>Train Count=%{customdata[0]}<br>Test Count=%{customdata[1]}<br>Value=%{color}<extra></extra>",
+         "ids": [
+          "Fruit and vegetables/Apple",
+          "Fish/Aquarium_fish",
+          "People/Baby",
+          "Large carnivores/Bear",
+          "Aquatic mammals/Beaver",
+          "Household furniture/Bed",
+          "Insects/Bee",
+          "Insects/Beetle",
+          "Vehicles 1/Bicycle",
+          "Food containers/Bottle",
+          "Food containers/Bowl",
+          "People/Boy",
+          "Large man-made outdoor things/Bridge",
+          "Vehicles 1/Bus",
+          "Insects/Butterfly",
+          "Large omnivores and herbivores/Camel",
+          "Food containers/Can",
+          "Large man-made outdoor things/Castle",
+          "Insects/Caterpillar",
+          "Large omnivores and herbivores/Cattle",
+          "Household furniture/Chair",
+          "Large omnivores and herbivores/Chimpanzee",
+          "Household electrical devices/Clock",
+          "Large natural outdoor scenes/Cloud",
+          "Insects/Cockroach",
+          "Household furniture/Couch",
+          "Non-insect invertebrates/Crab",
+          "Reptiles/Crocodile",
+          "Food containers/Cup",
+          "Reptiles/Dinosaur",
+          "Aquatic mammals/Dolphin",
+          "Large omnivores and herbivores/Elephant",
+          "Fish/Flatfish",
+          "Large natural outdoor scenes/Forest",
+          "Medium-sized mammals/Fox",
+          "People/Girl",
+          "Small mammals/Hamster",
+          "Large man-made outdoor things/House",
+          "Large omnivores and herbivores/Kangaroo",
+          "Household electrical devices/Keyboard",
+          "Household electrical devices/Lamp",
+          "Vehicles 2/Lawn_mower",
+          "Large carnivores/Leopard",
+          "Large carnivores/Lion",
+          "Reptiles/Lizard",
+          "Non-insect invertebrates/Lobster",
+          "People/Man",
+          "Trees/Maple_tree",
+          "Vehicles 1/Motorcycle",
+          "Large natural outdoor scenes/Mountain",
+          "Small mammals/Mouse",
+          "Fruit and vegetables/Mushroom",
+          "Trees/Oak_tree",
+          "Fruit and vegetables/Orange",
+          "Flowers/Orchid",
+          "Aquatic mammals/Otter",
+          "Trees/Palm_tree",
+          "Fruit and vegetables/Pear",
+          "Vehicles 1/Pickup_truck",
+          "Trees/Pine_tree",
+          "Large natural outdoor scenes/Plain",
+          "Food containers/Plate",
+          "Flowers/Poppy",
+          "Medium-sized mammals/Porcupine",
+          "Medium-sized mammals/Possum",
+          "Small mammals/Rabbit",
+          "Medium-sized mammals/Raccoon",
+          "Fish/Ray",
+          "Large man-made outdoor things/Road",
+          "Vehicles 2/Rocket",
+          "Flowers/Rose",
+          "Large natural outdoor scenes/Sea",
+          "Aquatic mammals/Seal",
+          "Fish/Shark",
+          "Small mammals/Shrew",
+          "Medium-sized mammals/Skunk",
+          "Large man-made outdoor things/Skyscraper",
+          "Non-insect invertebrates/Snail",
+          "Reptiles/Snake",
+          "Non-insect invertebrates/Spider",
+          "Small mammals/Squirrel",
+          "Vehicles 2/Streetcar",
+          "Flowers/Sunflower",
+          "Fruit and vegetables/Sweet_pepper",
+          "Household furniture/Table",
+          "Vehicles 2/Tank",
+          "Household electrical devices/Telephone",
+          "Household electrical devices/Television",
+          "Large carnivores/Tiger",
+          "Vehicles 2/Tractor",
+          "Vehicles 1/Train",
+          "Fish/Trout",
+          "Flowers/Tulip",
+          "Reptiles/Turtle",
+          "Household furniture/Wardrobe",
+          "Aquatic mammals/Whale",
+          "Trees/Willow_tree",
+          "Large carnivores/Wolf",
+          "People/Woman",
+          "Non-insect invertebrates/Worm",
+          "Aquatic mammals",
+          "Fish",
+          "Flowers",
+          "Food containers",
+          "Fruit and vegetables",
+          "Household electrical devices",
+          "Household furniture",
+          "Insects",
+          "Large carnivores",
+          "Large man-made outdoor things",
+          "Large natural outdoor scenes",
+          "Large omnivores and herbivores",
+          "Medium-sized mammals",
+          "Non-insect invertebrates",
+          "People",
+          "Reptiles",
+          "Small mammals",
+          "Trees",
+          "Vehicles 1",
+          "Vehicles 2"
+         ],
+         "labels": [
+          "Apple",
+          "Aquarium_fish",
+          "Baby",
+          "Bear",
+          "Beaver",
+          "Bed",
+          "Bee",
+          "Beetle",
+          "Bicycle",
+          "Bottle",
+          "Bowl",
+          "Boy",
+          "Bridge",
+          "Bus",
+          "Butterfly",
+          "Camel",
+          "Can",
+          "Castle",
+          "Caterpillar",
+          "Cattle",
+          "Chair",
+          "Chimpanzee",
+          "Clock",
+          "Cloud",
+          "Cockroach",
+          "Couch",
+          "Crab",
+          "Crocodile",
+          "Cup",
+          "Dinosaur",
+          "Dolphin",
+          "Elephant",
+          "Flatfish",
+          "Forest",
+          "Fox",
+          "Girl",
+          "Hamster",
+          "House",
+          "Kangaroo",
+          "Keyboard",
+          "Lamp",
+          "Lawn_mower",
+          "Leopard",
+          "Lion",
+          "Lizard",
+          "Lobster",
+          "Man",
+          "Maple_tree",
+          "Motorcycle",
+          "Mountain",
+          "Mouse",
+          "Mushroom",
+          "Oak_tree",
+          "Orange",
+          "Orchid",
+          "Otter",
+          "Palm_tree",
+          "Pear",
+          "Pickup_truck",
+          "Pine_tree",
+          "Plain",
+          "Plate",
+          "Poppy",
+          "Porcupine",
+          "Possum",
+          "Rabbit",
+          "Raccoon",
+          "Ray",
+          "Road",
+          "Rocket",
+          "Rose",
+          "Sea",
+          "Seal",
+          "Shark",
+          "Shrew",
+          "Skunk",
+          "Skyscraper",
+          "Snail",
+          "Snake",
+          "Spider",
+          "Squirrel",
+          "Streetcar",
+          "Sunflower",
+          "Sweet_pepper",
+          "Table",
+          "Tank",
+          "Telephone",
+          "Television",
+          "Tiger",
+          "Tractor",
+          "Train",
+          "Trout",
+          "Tulip",
+          "Turtle",
+          "Wardrobe",
+          "Whale",
+          "Willow_tree",
+          "Wolf",
+          "Woman",
+          "Worm",
+          "Aquatic mammals",
+          "Fish",
+          "Flowers",
+          "Food containers",
+          "Fruit and vegetables",
+          "Household electrical devices",
+          "Household furniture",
+          "Insects",
+          "Large carnivores",
+          "Large man-made outdoor things",
+          "Large natural outdoor scenes",
+          "Large omnivores and herbivores",
+          "Medium-sized mammals",
+          "Non-insect invertebrates",
+          "People",
+          "Reptiles",
+          "Small mammals",
+          "Trees",
+          "Vehicles 1",
+          "Vehicles 2"
+         ],
+         "marker": {
+          "coloraxis": "coloraxis",
+          "colors": [
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000,
+           3000
+          ]
+         },
+         "name": "",
+         "parents": [
+          "Fruit and vegetables",
+          "Fish",
+          "People",
+          "Large carnivores",
+          "Aquatic mammals",
+          "Household furniture",
+          "Insects",
+          "Insects",
+          "Vehicles 1",
+          "Food containers",
+          "Food containers",
+          "People",
+          "Large man-made outdoor things",
+          "Vehicles 1",
+          "Insects",
+          "Large omnivores and herbivores",
+          "Food containers",
+          "Large man-made outdoor things",
+          "Insects",
+          "Large omnivores and herbivores",
+          "Household furniture",
+          "Large omnivores and herbivores",
+          "Household electrical devices",
+          "Large natural outdoor scenes",
+          "Insects",
+          "Household furniture",
+          "Non-insect invertebrates",
+          "Reptiles",
+          "Food containers",
+          "Reptiles",
+          "Aquatic mammals",
+          "Large omnivores and herbivores",
+          "Fish",
+          "Large natural outdoor scenes",
+          "Medium-sized mammals",
+          "People",
+          "Small mammals",
+          "Large man-made outdoor things",
+          "Large omnivores and herbivores",
+          "Household electrical devices",
+          "Household electrical devices",
+          "Vehicles 2",
+          "Large carnivores",
+          "Large carnivores",
+          "Reptiles",
+          "Non-insect invertebrates",
+          "People",
+          "Trees",
+          "Vehicles 1",
+          "Large natural outdoor scenes",
+          "Small mammals",
+          "Fruit and vegetables",
+          "Trees",
+          "Fruit and vegetables",
+          "Flowers",
+          "Aquatic mammals",
+          "Trees",
+          "Fruit and vegetables",
+          "Vehicles 1",
+          "Trees",
+          "Large natural outdoor scenes",
+          "Food containers",
+          "Flowers",
+          "Medium-sized mammals",
+          "Medium-sized mammals",
+          "Small mammals",
+          "Medium-sized mammals",
+          "Fish",
+          "Large man-made outdoor things",
+          "Vehicles 2",
+          "Flowers",
+          "Large natural outdoor scenes",
+          "Aquatic mammals",
+          "Fish",
+          "Small mammals",
+          "Medium-sized mammals",
+          "Large man-made outdoor things",
+          "Non-insect invertebrates",
+          "Reptiles",
+          "Non-insect invertebrates",
+          "Small mammals",
+          "Vehicles 2",
+          "Flowers",
+          "Fruit and vegetables",
+          "Household furniture",
+          "Vehicles 2",
+          "Household electrical devices",
+          "Household electrical devices",
+          "Large carnivores",
+          "Vehicles 2",
+          "Vehicles 1",
+          "Fish",
+          "Flowers",
+          "Reptiles",
+          "Household furniture",
+          "Aquatic mammals",
+          "Trees",
+          "Large carnivores",
+          "People",
+          "Non-insect invertebrates",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+         ],
+         "textfont": {
+          "size": 10
+         },
+         "textposition": "middle center",
+         "type": "treemap",
+         "values": [
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          3000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000,
+          15000
+         ]
+        }
+       ],
+       "layout": {
+        "coloraxis": {
+         "colorbar": {
+          "title": {
+           "text": "Value"
+          }
+         },
+         "colorscale": [
+          [
+           0,
+           "rgb(247,251,255)"
+          ],
+          [
+           0.125,
+           "rgb(222,235,247)"
+          ],
+          [
+           0.25,
+           "rgb(198,219,239)"
+          ],
+          [
+           0.375,
+           "rgb(158,202,225)"
+          ],
+          [
+           0.5,
+           "rgb(107,174,214)"
+          ],
+          [
+           0.625,
+           "rgb(66,146,198)"
+          ],
+          [
+           0.75,
+           "rgb(33,113,181)"
+          ],
+          [
+           0.875,
+           "rgb(8,81,156)"
+          ],
+          [
+           1,
+           "rgb(8,48,107)"
+          ]
+         ]
+        },
+        "legend": {
+         "tracegroupgap": 0
+        },
+        "margin": {
+         "b": 1,
+         "l": 1,
+         "r": 1,
+         "t": 40
+        },
+        "template": {
+         "data": {
+          "bar": [
+           {
+            "error_x": {
+             "color": "#2a3f5f"
+            },
+            "error_y": {
+             "color": "#2a3f5f"
+            },
+            "marker": {
+             "line": {
+              "color": "#E5ECF6",
+              "width": 0.5
+             },
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "bar"
+           }
+          ],
+          "barpolar": [
+           {
+            "marker": {
+             "line": {
+              "color": "#E5ECF6",
+              "width": 0.5
+             },
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "barpolar"
+           }
+          ],
+          "carpet": [
+           {
+            "aaxis": {
+             "endlinecolor": "#2a3f5f",
+             "gridcolor": "white",
+             "linecolor": "white",
+             "minorgridcolor": "white",
+             "startlinecolor": "#2a3f5f"
+            },
+            "baxis": {
+             "endlinecolor": "#2a3f5f",
+             "gridcolor": "white",
+             "linecolor": "white",
+             "minorgridcolor": "white",
+             "startlinecolor": "#2a3f5f"
+            },
+            "type": "carpet"
+           }
+          ],
+          "choropleth": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "choropleth"
+           }
+          ],
+          "contour": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "contour"
+           }
+          ],
+          "contourcarpet": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "contourcarpet"
+           }
+          ],
+          "heatmap": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "heatmap"
+           }
+          ],
+          "heatmapgl": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "heatmapgl"
+           }
+          ],
+          "histogram": [
+           {
+            "marker": {
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "histogram"
+           }
+          ],
+          "histogram2d": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "histogram2d"
+           }
+          ],
+          "histogram2dcontour": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "histogram2dcontour"
+           }
+          ],
+          "mesh3d": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "mesh3d"
+           }
+          ],
+          "parcoords": [
+           {
+            "line": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "parcoords"
+           }
+          ],
+          "pie": [
+           {
+            "automargin": true,
+            "type": "pie"
+           }
+          ],
+          "scatter": [
+           {
+            "fillpattern": {
+             "fillmode": "overlay",
+             "size": 10,
+             "solidity": 0.2
+            },
+            "type": "scatter"
+           }
+          ],
+          "scatter3d": [
+           {
+            "line": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatter3d"
+           }
+          ],
+          "scattercarpet": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattercarpet"
+           }
+          ],
+          "scattergeo": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattergeo"
+           }
+          ],
+          "scattergl": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattergl"
+           }
+          ],
+          "scattermapbox": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattermapbox"
+           }
+          ],
+          "scatterpolar": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterpolar"
+           }
+          ],
+          "scatterpolargl": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterpolargl"
+           }
+          ],
+          "scatterternary": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterternary"
+           }
+          ],
+          "surface": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "surface"
+           }
+          ],
+          "table": [
+           {
+            "cells": {
+             "fill": {
+              "color": "#EBF0F8"
+             },
+             "line": {
+              "color": "white"
+             }
+            },
+            "header": {
+             "fill": {
+              "color": "#C8D4E3"
+             },
+             "line": {
+              "color": "white"
+             }
+            },
+            "type": "table"
+           }
+          ]
+         },
+         "layout": {
+          "annotationdefaults": {
+           "arrowcolor": "#2a3f5f",
+           "arrowhead": 0,
+           "arrowwidth": 1
+          },
+          "autotypenumbers": "strict",
+          "coloraxis": {
+           "colorbar": {
+            "outlinewidth": 0,
+            "ticks": ""
+           }
+          },
+          "colorscale": {
+           "diverging": [
+            [
+             0,
+             "#8e0152"
+            ],
+            [
+             0.1,
+             "#c51b7d"
+            ],
+            [
+             0.2,
+             "#de77ae"
+            ],
+            [
+             0.3,
+             "#f1b6da"
+            ],
+            [
+             0.4,
+             "#fde0ef"
+            ],
+            [
+             0.5,
+             "#f7f7f7"
+            ],
+            [
+             0.6,
+             "#e6f5d0"
+            ],
+            [
+             0.7,
+             "#b8e186"
+            ],
+            [
+             0.8,
+             "#7fbc41"
+            ],
+            [
+             0.9,
+             "#4d9221"
+            ],
+            [
+             1,
+             "#276419"
+            ]
+           ],
+           "sequential": [
+            [
+             0,
+             "#0d0887"
+            ],
+            [
+             0.1111111111111111,
+             "#46039f"
+            ],
+            [
+             0.2222222222222222,
+             "#7201a8"
+            ],
+            [
+             0.3333333333333333,
+             "#9c179e"
+            ],
+            [
+             0.4444444444444444,
+             "#bd3786"
+            ],
+            [
+             0.5555555555555556,
+             "#d8576b"
+            ],
+            [
+             0.6666666666666666,
+             "#ed7953"
+            ],
+            [
+             0.7777777777777778,
+             "#fb9f3a"
+            ],
+            [
+             0.8888888888888888,
+             "#fdca26"
+            ],
+            [
+             1,
+             "#f0f921"
+            ]
+           ],
+           "sequentialminus": [
+            [
+             0,
+             "#0d0887"
+            ],
+            [
+             0.1111111111111111,
+             "#46039f"
+            ],
+            [
+             0.2222222222222222,
+             "#7201a8"
+            ],
+            [
+             0.3333333333333333,
+             "#9c179e"
+            ],
+            [
+             0.4444444444444444,
+             "#bd3786"
+            ],
+            [
+             0.5555555555555556,
+             "#d8576b"
+            ],
+            [
+             0.6666666666666666,
+             "#ed7953"
+            ],
+            [
+             0.7777777777777778,
+             "#fb9f3a"
+            ],
+            [
+             0.8888888888888888,
+             "#fdca26"
+            ],
+            [
+             1,
+             "#f0f921"
+            ]
+           ]
+          },
+          "colorway": [
+           "#636efa",
+           "#EF553B",
+           "#00cc96",
+           "#ab63fa",
+           "#FFA15A",
+           "#19d3f3",
+           "#FF6692",
+           "#B6E880",
+           "#FF97FF",
+           "#FECB52"
+          ],
+          "font": {
+           "color": "#2a3f5f"
+          },
+          "geo": {
+           "bgcolor": "white",
+           "lakecolor": "white",
+           "landcolor": "#E5ECF6",
+           "showlakes": true,
+           "showland": true,
+           "subunitcolor": "white"
+          },
+          "hoverlabel": {
+           "align": "left"
+          },
+          "hovermode": "closest",
+          "mapbox": {
+           "style": "light"
+          },
+          "paper_bgcolor": "white",
+          "plot_bgcolor": "#E5ECF6",
+          "polar": {
+           "angularaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "bgcolor": "#E5ECF6",
+           "radialaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           }
+          },
+          "scene": {
+           "xaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           },
+           "yaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           },
+           "zaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           }
+          },
+          "shapedefaults": {
+           "line": {
+            "color": "#2a3f5f"
+           }
+          },
+          "ternary": {
+           "aaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "baxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "bgcolor": "#E5ECF6",
+           "caxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           }
+          },
+          "title": {
+           "x": 0.05
+          },
+          "xaxis": {
+           "automargin": true,
+           "gridcolor": "white",
+           "linecolor": "white",
+           "ticks": "",
+           "title": {
+            "standoff": 15
+           },
+           "zerolinecolor": "white",
+           "zerolinewidth": 2
+          },
+          "yaxis": {
+           "automargin": true,
+           "gridcolor": "white",
+           "linecolor": "white",
+           "ticks": "",
+           "title": {
+            "standoff": 15
+           },
+           "zerolinecolor": "white",
+           "zerolinewidth": 2
+          }
+         }
+        },
+        "title": {
+         "text": "CIFAR-100 Treemap",
+         "x": 0.5
+        }
+       }
+      }
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "import plotly.express as px\n",
+    "import plotly.graph_objects as go\n",
+    "from plotly.subplots import make_subplots\n",
+    "from collections import defaultdict\n",
+    "\n",
+    "def visualize_treemap(superclasses, train_set, test_set):\n",
+    "    # Create a mapping from class index to superclass\n",
+    "    superclass_to_indices = {\n",
+    "        superclass: [classes.index(subclass) for subclass in subclasses]\n",
+    "        for superclass, subclasses in superclasses.items()\n",
+    "    }\n",
+    "\n",
+    "    # Count the number of samples in each superclass\n",
+    "    train_superclass_counts = defaultdict(int)\n",
+    "    test_superclass_counts = defaultdict(int)\n",
+    "\n",
+    "    # Count samples in the training set\n",
+    "    for _, label in train_set:\n",
+    "        for superclass, indices in superclass_to_indices.items():\n",
+    "            if label in indices:\n",
+    "                train_superclass_counts[superclass] += 1\n",
+    "                break\n",
+    "\n",
+    "    # Count samples in the test set\n",
+    "    for _, label in test_set:\n",
+    "        for superclass, indices in superclass_to_indices.items():\n",
+    "            if label in indices:\n",
+    "                test_superclass_counts[superclass] += 1\n",
+    "                break\n",
+    "\n",
+    "    # Prepare data for the treemap\n",
+    "    data = {\n",
+    "        'Superclass': [],\n",
+    "        'Subclass': [],\n",
+    "        'Value': [],  # Add a value column for size\n",
+    "        'Test Count': [],  # Add a column for test count\n",
+    "        'Train Count': [],  # Add a column for train count\n",
+    "    }\n",
+    "\n",
+    "    for superclass, subclasses in superclasses.items():\n",
+    "        total_count = train_superclass_counts[superclass] + test_superclass_counts[superclass]\n",
+    "        for subclass in subclasses:\n",
+    "            data['Superclass'].append(superclass.capitalize())\n",
+    "            data['Subclass'].append(subclass.capitalize())\n",
+    "            data['Value'].append(total_count)  # Assign the total count as the value for each subclass\n",
+    "            data['Test Count'].append(test_superclass_counts[superclass])\n",
+    "            data['Train Count'].append(train_superclass_counts[superclass])\n",
+    "\n",
+    "    # Create a DataFrame\n",
+    "    df = pd.DataFrame(data)\n",
+    "\n",
+    "    # Create a treemap\n",
+    "    fig = px.treemap(df,\n",
+    "                     path=['Superclass', 'Subclass'],  # Define the hierarchy\n",
+    "                     values='Value',  # Use 'Value' for size\n",
+    "                     title='CIFAR-100 Treemap',\n",
+    "                     color='Value',  # Use 'Value' for color coding\n",
+    "                     color_continuous_scale='Blues',  # Change color scale if desired\n",
+    "                     hover_data=['Train Count', 'Test Count'],\n",
+    "                     )  # Add test and train counts to hover data\n",
+    "\n",
+    "    # Update the layout\n",
+    "    fig.update_layout(margin=dict(t=40, l=1, r=1, b=1))\n",
+    "\n",
+    "    # Center the title\n",
+    "    fig.update_layout(title_x=0.5)\n",
+    "\n",
+    "    # Increase the size of the map\n",
+    "    fig.update_traces(textposition='middle center', textfont_size=10)\n",
+    "\n",
+    "    # Show the treemap\n",
+    "    fig.show()\n",
+    "\n",
+    "# Call the function to visualize the dataset structure\n",
+    "visualize_treemap(superclasses, train_set, test_set)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-3\"></a>\n",
+    "### **Section 3: TwoLayerNet Architecture (2 points)**\n",
+    "\n",
+    "In this section, you will implement the architecture of a fully connected neural network called `TwoLayerNet`, consisting of two fully connected layers with a ReLU activation in between. The network accepts an input size of 3x32x32 (CIFAR-100 image), a specified hidden layer size, and the number of output classes. In the `__init__` method, define the first fully connected layer that maps the input size to the hidden size, and the second fully connected layer that maps the hidden size to the number of classes. \n",
+    "\n",
+    "Ensure to call the parent class constructor using `super(TwoLayerNet, self).__init__()`. In the `forward` method, flatten the input tensor, pass it through the first layer with ReLU activation, and then through the second layer to obtain the final scores.\n",
+    "\n",
+    "**Note:** You are allowed to modify the provided function definitions as needed."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "class TwoLayerNet(nn.Module):\n",
+    "\n",
+    "    def __init__(self, input_size, hidden_size, num_classes):\n",
+    "        '''\n",
+    "        Initializes the two-layer neural network model.\n",
+    "\n",
+    "        Args:\n",
+    "            input_size (int): The size of the input features.\n",
+    "            hidden_size (int): The size of the hidden layer.\n",
+    "            num_classes (int): The number of classes in the dataset.\n",
+    "        '''\n",
+    "\n",
+    "<<<<<<< local\n",
+    "        # YOUR CODE HERE\n",
+    "        super(TwoLayerNet, self).__init__()\n",
+    "        self.flatten = nn.Flatten()\n",
+    "        self.relu = nn.ReLU()\n",
+    "        \n",
+    "        self.layer1 = nn.Linear(input_size, hidden_size)\n",
+    "        self.dropout = nn.Dropout(0.3)\n",
+    "        self.layer2 = nn.Linear(hidden_size, num_classes)\n",
+    "=======\n",
+    "        super(TwoLayerNet, self).__init__()\n",
+    "\n",
+    "        # Define the first fully-connected layer\n",
+    "        self.layers = nn.Sequential(\n",
+    "            nn.Linear(input_size, hidden_size),\n",
+    "            nn.ReLU(),\n",
+    "            nn.Linear(hidden_size, num_classes)\n",
+    "        )\n",
+    ">>>>>>> remote\n",
+    "\n",
+    "    def forward(self, x):\n",
+    "        '''\n",
+    "        Defines the forward pass of the neural network.\n",
+    "\n",
+    "        Args:\n",
+    "            x (torch.Tensor): The input tensor.\n",
+    "\n",
+    "        Returns:\n",
+    "            torch.Tensor: The output tensor.\n",
+    "        '''\n",
+    "<<<<<<< local\n",
+    "\n",
+    "        # YOUR CODE HERE\n",
+    "        x = self.flatten(x)\n",
+    "        x = self.relu(self.layer1(x))\n",
+    "        x = self.dropout(x)\n",
+    "        class_probs = self.relu(self.layer2(x))\n",
+    "        \n",
+    "        return class_probs\n",
+    "=======\n",
+    "        x = x.view(x.size(0), -1)\n",
+    "        return self.layers(x)\n",
+    ">>>>>>> remote"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-4\"></a>\n",
+    "### **Section 4: ConvNet Architecture (2 points)**\n",
+    "\n",
+    "In this section, you will implement a convolutional neural network inspired by the structure of [LeNet-5](https://ieeexplore.ieee.org/document/726791). The network processes color images using three convolutional layers followed by two fully connected layers. Since you need to feed color images into this network, determine the kernel size of the first convolutional layer. Additionally, calculate the number of trainable parameters in the \"F6\" layer, providing the calculation process."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "05ee9888",
+   "metadata": {},
+   "source": [
+    "<span style=\"color:red\"><b><<<<<<< local</b></span>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "class ConvNet(nn.Module):\n",
+    "\n",
+    "    def __init__(self, input_size, num_classes):\n",
+    "        '''\t\n",
+    "        Initializes the convolutional neural network model.\n",
+    "\n",
+    "        Args:\n",
+    "            None\n",
+    "        '''\n",
+    "\n",
+    "        # YOUR CODE HERE\n",
+    "        super(ConvNet, self).__init__()\n",
+    "        self.relu = nn.ReLU()\n",
+    "        \n",
+    "        self.conv1 = nn.Conv3d(input_size, 28, 5)\n",
+    "        self.avgPool1 = nn.AvgPool3d(2, stride=2)\n",
+    "        self.conv2 = nn.Conv3d(14, 10, 5)\n",
+    "        self.avgPool2 = nn.AvgPool3d(2, stride=2)\n",
+    "        \n",
+    "        # TODO: connection between convolutional and linear layers, flatten layer perhaps?\n",
+    "        \n",
+    "        self.lin1 = nn.Linear(120, 84)\n",
+    "        self.softmax = nn.Softmax()\n",
+    "        self.lin2 = nn.Linear(84, num_classes)\n",
+    "\n",
+    "    def forward(self, x):\n",
+    "        '''\n",
+    "        Defines the forward pass of the neural network.\n",
+    "\n",
+    "        Args:\n",
+    "            x (torch.Tensor): The input tensor.\n",
+    "\n",
+    "        Returns:\n",
+    "            torch.Tensor: The output tensor.\n",
+    "        '''\n",
+    "        \n",
+    "        # YOUR CODE HERE\n",
+    "        x = self.relu(self.conv1(x))\n",
+    "        x = self.avgPool1(x)\n",
+    "        x = self.relu(self.conv2(x))\n",
+    "        x = self.avgPool2(x)\n",
+    "        \n",
+    "        # TODO: connection between convolutional and linear layers, flatten layer perhaps?\n",
+    "        \n",
+    "        x = self.relu(self.lin1(x))\n",
+    "        class_probs = self.softmax(self.lin2(x))\n",
+    "        \n",
+    "        return class_probs"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a3c2de3e",
+   "metadata": {},
+   "source": [
+    "<span style=\"color:red\"><b>=======</b></span>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "class ConvNet(nn.Module):\n",
+    "\n",
+    "    def __init__(self):\n",
+    "        '''\t\n",
+    "        Initializes the convolutional neural network model.\n",
+    "\n",
+    "        Args:\n",
+    "            None\n",
+    "        '''\n",
+    "\n",
+    "        super(ConvNet, self).__init__()\n",
+    "\n",
+    "        self.conv_blocks = nn.Sequential(\n",
+    "            nn.Conv2d(3, 6, kernel_size=5),  # C1: input 3 channels (color), 6 filters\n",
+    "            nn.ReLU(),                    # Activation\n",
+    "            nn.AvgPool2d(kernel_size=2),     # S2: Average pooling\n",
+    "            \n",
+    "            nn.Conv2d(6, 16, kernel_size=5),  # C3: 6 input channels, 16 filters\n",
+    "            nn.ReLU(),                    # Activation\n",
+    "            nn.AvgPool2d(kernel_size=2),     # S4: Average pooling\n",
+    "            \n",
+    "            nn.Conv2d(16, 120, kernel_size=5), # C5: 16 input channels, 120 filters\n",
+    "            nn.ReLU(),                    # Activation\n",
+    "        )\n",
+    "\n",
+    "        self.classifier = nn.Sequential(\n",
+    "            nn.Flatten(),                   # Flatten the output\n",
+    "            nn.Linear(120 * 9 * 9, 84),  # F6: Fully connected layer\n",
+    "            nn.ReLU(),          # Activation\n",
+    "            nn.Linear(84, 100) # Output layer: 100 classes\n",
+    "        )\n",
+    "\n",
+    "        \n",
+    "\n",
+    "    def forward(self, x):\n",
+    "        '''\n",
+    "        Defines the forward pass of the neural network.\n",
+    "\n",
+    "        Args:\n",
+    "            x (torch.Tensor): The input tensor.\n",
+    "\n",
+    "        Returns:\n",
+    "            torch.Tensor: The output tensor.\n",
+    "        '''\n",
+    "\n",
+    "        # x = self.conv_block_1(x)\n",
+    "        # x = self.conv_block_2(x)\n",
+    "        # x = self.conv_block_3(x)\n",
+    "        # x = self.classifier(x)\n",
+    "        return self.classifier(self.conv_blocks(x))\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "143910ec",
+   "metadata": {},
+   "source": [
+    "<span style=\"color:red\"><b>>>>>>>> remote</b></span>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-5\"></a>\n",
+    "### **Section 5: Preparation of Training (7 points)**\n",
+    "\n",
+    "In this section, you will create a custom dataset class to load the CIFAR-100 data, define a transform function for data augmentation, and set up an optimizer for training. While the previous section utilized the built-in CIFAR-100 class from `torchvision`, in practice, you often need to prepare datasets manually. Here, you will implement the `CIFAR100_loader` class to handle the dataset and use `DataLoader` to make it iterable. You will also define a transform function for data augmentation and an optimizer for updating the model's parameters."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "class CIFAR100_loader(Dataset):\n",
+    "    \n",
+    "    def __init__(self, root, train=True, transform=None, download=False):\n",
+    "        '''\n",
+    "        Initializes the CIFAR-100 dataset loader.\n",
+    "\n",
+    "        Args:\n",
+    "            root (str): The root directory to store the dataset.\n",
+    "            train (bool): If True, loads the training data; otherwise, loads the test data.\n",
+    "            transform (callable, optional): The data transformations to apply.\n",
+    "            download (bool): If True, downloads the dataset if it is not already available.\n",
+    "        '''\n",
+    "        self.dataset = torchvision.datasets.CIFAR100(root=root, train=train, transform=transform, download=download)\n",
+    "        self.transform = transform\n",
+    "\n",
+    "    def __len__(self):\n",
+    "        '''\n",
+    "        Returns the number of samples in the dataset.\n",
+    "\n",
+    "        Returns:\n",
+    "            int: The number of samples in the dataset.\n",
+    "        '''\n",
+    "        return len(self.dataset)\n",
+    "\n",
+    "    def __getitem__(self, idx):\n",
+    "        '''\n",
+    "        Retrieves a sample from the dataset at the specified index.\n",
+    "\n",
+    "        Args:# YOUR CODE HERE\n",
+    "\n",
+    "            idx (int): The index of the sample to retrieve.\n",
+    "\n",
+    "        Returns:\n",
+    "            tuple: A tuple containing the image and label tensors.\n",
+    "        '''\n",
+    "        image, label = self.dataset[idx]\n",
+    "        # if self.transform:\n",
+    "        #     image = self.transform(image)\n",
+    "        return image, label"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def create_transforms():\n",
+    "    '''\n",
+    "    Creates the data transformations for the CIFAR-100 dataset.\n",
+    "\n",
+    "    Returns:\n",
+    "        torchvision.transforms.Compose: The data transformations for the dataset.\n",
+    "    '''\n",
+    "\n",
+    "    transform = transforms.Compose([\n",
+    "        transforms.Resize((64, 64)),\n",
+    "        transforms.ToTensor(),\n",
+    "        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))\n",
+    "    ])\n",
+    "\n",
+    "    return transform"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def create_optimizer(model, learning_rate=0.001):\n",
+    "    '''\n",
+    "    Creates an optimizer for the model.\n",
+    "\n",
+    "    Args:\n",
+    "        model (torch.nn.Module): The neural network model.\n",
+    "        learning_rate (float): The learning rate for the optimizer.\n",
+    "\n",
+    "    Returns:\n",
+    "        torch.optim.Adam: The optimizer for the model.\n",
+    "    '''\n",
+    "\n",
+    "    optimizer = torch.optim.Adam(model.parameters(),\n",
+    "                                 lr=learning_rate, \n",
+    "                                 eps=1e-8,\n",
+    "                                 amsgrad=True, \n",
+    "                                weight_decay=0)\n",
+    "\n",
+    "\n",
+    "    return optimizer"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-6\"></a>\n",
+    "### **Section 6: Training the Networks (5 points)**\n",
+    "\n",
+    "In this section, you will complete the `train` function and use it to train both the `TwoLayerNet` and `ConvNet` models. You will use the custom `CIFAR100_loader`, transform function, and optimizer function that you implemented. The goal is to compare the performance of the two models on the CIFAR-100 dataset."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def create_writer(experiment_name: str, \n",
+    "                  model_name: str, \n",
+    "                  timestamp: str,\n",
+    "                  extra: str=None) -> torch.utils.tensorboard.writer.SummaryWriter:\n",
+    "    \"\"\"Creates a torch.utils.tensorboard.writer.SummaryWriter() instance saving to a specific log_dir.\n",
+    "\n",
+    "    log_dir is a combination of runs/timestamp/experiment_name/model_name/extra.\n",
+    "\n",
+    "    Where timestamp is the current date in YYYY-MM-DD format.\n",
+    "\n",
+    "    Args:\n",
+    "        experiment_name (str): Name of experiment.\n",
+    "        model_name (str): Name of model.\n",
+    "        extra (str, optional): Anything extra to add to the directory. Defaults to None.\n",
+    "\n",
+    "    Returns:\n",
+    "        torch.utils.tensorboard.writer.SummaryWriter(): Instance of a writer saving to log_dir.\n",
+    "\n",
+    "    Example usage:\n",
+    "        # Create a writer saving to \"runs/2022-06-04/data_10_percent/effnetb2/5_epochs/\"\n",
+    "        writer = create_writer(experiment_name=\"data_10_percent\",\n",
+    "                               model_name=\"effnetb2\",\n",
+    "                               extra=\"5_epochs\")\n",
+    "        # The above is the same as:\n",
+    "        writer = SummaryWriter(log_dir=\"runs/2022-06-04/data_10_percent/effnetb2/5_epochs/\")\n",
+    "    \"\"\"\n",
+    "\n",
+    "    if extra:\n",
+    "        # Create log directory path\n",
+    "        log_dir = os.path.join(\"runs\", experiment_name, model_name, timestamp, extra)\n",
+    "    else:\n",
+    "        log_dir = os.path.join(\"runs\", experiment_name, model_name, timestamp)\n",
+    "        \n",
+    "    print(f\"[INFO] Created SummaryWriter, saving to: {log_dir}...\")\n",
+    "    return SummaryWriter(log_dir=log_dir)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def train_step(epoch: int,\n",
+    "               model: nn.Module,\n",
+    "               dataloader: DataLoader,\n",
+    "               loss_fn: nn.Module,\n",
+    "                optimizer: optim.Optimizer,\n",
+    "                device: torch.device):\n",
+    "    '''\n",
+    "    Trains the model for one epoch.\n",
+    "    '''\n",
+    "\n",
+    "    model.train()\n",
+    "\n",
+    "    train_loss, train_acc = 0.0, 0.0\n",
+    "\n",
+    "    progress_bar = tqdm(\n",
+    "        enumerate(dataloader), \n",
+    "        desc=f\"Training Epoch {epoch + 1}\", \n",
+    "        total=len(dataloader),\n",
+    "        leave=False,\n",
+    "        colour=\"green\"\n",
+    "    )\n",
+    "\n",
+    "    for batch, (X, y) in progress_bar:\n",
+    "        # Send data to target device\n",
+    "        X, y = X.to(device), y.to(device)\n",
+    "        # 1. Forward pass\n",
+    "        y_pred = model(X)\n",
+    "\n",
+    "        # 2. Calculate  and accumulate loss\n",
+    "        loss = loss_fn(y_pred, y)\n",
+    "        train_loss += loss.item() \n",
+    "\n",
+    "        # 3. Optimizer zero grad\n",
+    "        optimizer.zero_grad()\n",
+    "\n",
+    "        # 4. Loss backward\n",
+    "        #loss.backward(create_graph=True)\n",
+    "        loss.backward()\n",
+    "\n",
+    "        # 5. Optimizer step\n",
+    "        optimizer.step()\n",
+    "\n",
+    "        # Calculate and accumulate accuracy metric across all batches\n",
+    "        y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)\n",
+    "        train_acc += (y_pred_class == y).sum().item()/len(y_pred)\n",
+    "        progress_bar.set_postfix(\n",
+    "            {\n",
+    "                \"train_loss\": train_loss / (batch + 1),\n",
+    "                \"train_acc\": train_acc / (batch + 1),\n",
+    "            }\n",
+    "        )\n",
+    "        progress_bar.update()\n",
+    "\n",
+    "    # Adjust metrics to get average loss and accuracy per batch \n",
+    "    train_loss = train_loss / len(dataloader)\n",
+    "    train_acc = train_acc / len(dataloader)\n",
+    "\n",
+    "    return train_loss, train_acc"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def test_step(epoch: int,\n",
+    "              model: torch.nn.Module, \n",
+    "              dataloader: torch.utils.data.DataLoader, \n",
+    "              loss_fn: torch.nn.Module,\n",
+    "              device: torch.device,\n",
+    "              disable_progress_bar: bool = False):\n",
+    "    '''\n",
+    "    Tests the model on the test set.\n",
+    "    '''\n",
+    "    # Put model in eval mode\n",
+    "    model.eval() \n",
+    "\n",
+    "    # Setup test loss and test accuracy values\n",
+    "    val_loss, val_acc = 0, 0\n",
+    "\n",
+    "    # Loop through data loader data batches\n",
+    "    progress_bar = tqdm(\n",
+    "        enumerate(dataloader), \n",
+    "        desc=f\"Testing Epoch {epoch + 1}\", \n",
+    "        total=len(dataloader),\n",
+    "        disable=disable_progress_bar,\n",
+    "        leave=False,\n",
+    "        colour=\"red\"\n",
+    "    )\n",
+    "\n",
+    "    # Turn on inference context manager\n",
+    "    with torch.inference_mode():\n",
+    "        # Loop through DataLoader batches\n",
+    "        for batch, (X, y) in progress_bar:\n",
+    "            # Send data to target device\n",
+    "            X, y = X.to(device), y.to(device)\n",
+    "\n",
+    "            # 1. Forward pass\n",
+    "            test_pred_logits = model(X)\n",
+    "\n",
+    "            # 2. Calculate and accumulate loss\n",
+    "            loss = loss_fn(test_pred_logits, y)\n",
+    "            val_loss += loss.item()\n",
+    "\n",
+    "            # Calculate and accumulate accuracy\n",
+    "            test_pred_labels = test_pred_logits.argmax(dim=1)\n",
+    "            val_acc += ((test_pred_labels == y).sum().item()/len(test_pred_labels))\n",
+    "            \n",
+    "            # Update progress bar\n",
+    "            progress_bar.set_postfix(\n",
+    "                {\n",
+    "                  \"val_loss\": val_loss / (batch + 1),\n",
+    "                    \"val_acc\": val_acc / (batch + 1),\n",
+    "                }\n",
+    "            )\n",
+    "            progress_bar.update()\n",
+    "\n",
+    "    # Adjust metrics to get average loss and accuracy per batch \n",
+    "    val_loss = val_loss / len(dataloader)\n",
+    "    val_acc = val_acc / len(dataloader)\n",
+    "    return val_loss, val_acc"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def validate(net, testloader):\n",
+    "    '''\n",
+    "    Validates the model on the test dataset.\n",
+    "\n",
+    "    Args:\n",
+    "        net (torch.nn.Module): The neural network model.\n",
+    "        testloader (torch.utils.data.DataLoader): The data loader for the test dataset.\n",
+    "\n",
+    "    Returns:\n",
+    "        float: The accuracy of the model on the test dataset.\n",
+    "    '''\n",
+    "\n",
+    "    # Set the model to evaluation mode\n",
+    "    net.eval()\n",
+    "\n",
+    "    # Determine the device to run the model on\n",
+    "    device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n",
+    "    correct, total = 0, 0\n",
+    "\n",
+    "    # Disable gradient computation\n",
+    "    with torch.no_grad():\n",
+    "\n",
+    "        # Iterate over the test dataset\n",
+    "        for inputs, labels in testloader:\n",
+    "            inputs, labels = inputs.to(device), labels.to(device)\n",
+    "            outputs = net(inputs)\n",
+    "            _, predicted = torch.max(outputs, 1)\n",
+    "            total += labels.size(0)\n",
+    "            correct += (predicted == labels).sum().item()\n",
+    "\n",
+    "    accuracy = 100 * correct / total\n",
+    "    print(f'Accuracy of the network on the test images: {accuracy:.2f} %')\n",
+    "\n",
+    "    return accuracy"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def validate_per_class(net, testloader, classes):\n",
+    "    '''\n",
+    "    Validates the model on the test dataset per class.\n",
+    "\n",
+    "    Args:\n",
+    "        net (torch.nn.Module): The neural network model.\n",
+    "        testloader (torch.utils.data.DataLoader): The data loader for the test dataset.\n",
+    "        classes (tuple): The tuple of class names.\n",
+    "\n",
+    "    Returns:\n",
+    "        None\n",
+    "    '''\n",
+    "\n",
+    "    # Set the model to evaluation mode\n",
+    "    net.eval()\n",
+    "\n",
+    "    # Determine the device to run the model on\n",
+    "    device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n",
+    "\n",
+    "    class_correct = [0. for _ in range(len(classes))]\n",
+    "    class_total = [0. for _ in range(len(classes))]\n",
+    "\n",
+    "    # Disable gradient computation\n",
+    "    with torch.no_grad():\n",
+    "\n",
+    "        # Iterate over the test dataset\n",
+    "        for inputs, labels in testloader:\n",
+    "            inputs, labels = inputs.to(device), labels.to(device)\n",
+    "            outputs = net(inputs)\n",
+    "            _, predicted = torch.max(outputs, 1)\n",
+    "            correct_predictions = (predicted == labels).squeeze()\n",
+    "\n",
+    "            for i in range(len(labels)):\n",
+    "                label = labels[i]\n",
+    "                class_correct[label] += correct_predictions[i].item()\n",
+    "                class_total[label] += 1\n",
+    "\n",
+    "    for i, class_name in enumerate(classes):\n",
+    "        accuracy = 100 * class_correct[i] / class_total[i] if class_total[i] > 0 else 0\n",
+    "        print(f'Accuracy of {class_name:5s} : {accuracy:.2f} %')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def train_original(net, train_loader, criterion, optimizer, epochs=100):\n",
+    "    '''\n",
+    "    Trains the neural network model.\n",
+    "\n",
+    "    Args:\n",
+    "        net (torch.nn.Module): The neural network model.\n",
+    "        train_loader (torch.utils.data.DataLoader): The data loader for the training dataset.\n",
+    "        criterion (torch.nn.Module): The loss function.\n",
+    "        optimizer (torch.optim.Optimizer): The optimizer for the model.\n",
+    "        epochs (int): The number of epochs to train the model.\n",
+    "\n",
+    "    Returns:\n",
+    "        None\n",
+    "    '''\n",
+    "\n",
+    "    # YOUR CODE HERE"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def train(model: torch.nn.Module, \n",
+    "          train_dataloader: torch.utils.data.DataLoader, \n",
+    "          val_dataloader: torch.utils.data.DataLoader, \n",
+    "          optimizer: torch.optim.Optimizer,\n",
+    "          loss_fn: torch.nn.Module,\n",
+    "          epochs: int,\n",
+    "          device: torch.device,\n",
+    "          writer: torch.utils.tensorboard.writer.SummaryWriter = None,\n",
+    "          learning_rate_scheduler: torch.optim.lr_scheduler = None,\n",
+    "          disable_progress_bar: bool = False):\n",
+    "    \n",
+    "    # Create empty results dictionary\n",
+    "    results = {\"train_loss\": [],\n",
+    "               \"train_acc\": [],\n",
+    "               \"val_loss\": [],\n",
+    "               \"val_acc\": []\n",
+    "    }\n",
+    "    \n",
+    "    # Make sure model on target device\n",
+    "    model.to(device)\n",
+    "\n",
+    "    # Loop through training and testing steps for a number of epochs\n",
+    "    progress_bar = tqdm(\n",
+    "        range(epochs),\n",
+    "        desc=\"Epochs\",\n",
+    "        total=epochs,\n",
+    "        disable=disable_progress_bar,\n",
+    "        leave=False,\n",
+    "        colour=\"blue\"\n",
+    "    )\n",
+    "\n",
+    "    # Loop through training and testing steps for a number of epochs\n",
+    "    for epoch in progress_bar:\n",
+    "        progress_bar.set_description(f\"Epoch {epoch+1}\")\n",
+    "        train_loss, train_acc = 0, 0\n",
+    "        val_loss, val_acc = 0, 0\n",
+    "        train_metrics = train_loss, train_acc\n",
+    "        test_metrics = val_loss, val_acc\n",
+    "        train_metrics = train_step(epoch=epoch,\n",
+    "                                        model=model,\n",
+    "                                        dataloader=train_dataloader,\n",
+    "                                        loss_fn=loss_fn,\n",
+    "                                        optimizer=optimizer,\n",
+    "                                        device=device)\n",
+    "        test_metrics = test_step(epoch=epoch,\n",
+    "                                        model=model,\n",
+    "                                        dataloader=val_dataloader,\n",
+    "                                        loss_fn=loss_fn,\n",
+    "                                        device=device)\n",
+    "        \n",
+    "        # Adjust learning rate if learning rate scheduler is provided\n",
+    "        if learning_rate_scheduler:\n",
+    "            learning_rate_scheduler.step()\n",
+    "\n",
+    "        # Print depending on classification or regression\n",
+    "        train_loss, train_acc = train_metrics\n",
+    "        val_loss, val_acc = test_metrics\n",
+    "        # Print out what's happening\n",
+    "        print(\n",
+    "        f\"\\nEpoch: {epoch+1} | \"\n",
+    "        f\"train_loss: {train_loss:.4f} | \"\n",
+    "        f\"train_acc: {train_acc:.4f} | \"\n",
+    "        f\"val_loss: {val_loss:.4f} | \"\n",
+    "        f\"val_acc: {val_acc:.4f}\"\n",
+    "        )\n",
+    "\n",
+    "        # Update results dictionary\n",
+    "        results[\"train_loss\"].append(train_loss)\n",
+    "        results[\"train_acc\"].append(train_acc)\n",
+    "        results[\"val_loss\"].append(val_loss)\n",
+    "        results[\"val_acc\"].append(val_acc)\n",
+    "\n",
+    "\n",
+    "        if writer:\n",
+    "            # Add loss results to SummaryWriter\n",
+    "            writer.add_scalar(\"Loss/Train\", train_loss, epoch)\n",
+    "            writer.add_scalar(\"Loss/Val\", val_loss, epoch)\n",
+    "            writer.add_scalar(\"Accuracy/Train\", train_acc, epoch)\n",
+    "            writer.add_scalar(\"Accuracy/Val\", val_acc, epoch)\n",
+    "\n",
+    "            # Track the PyTorch model architecture\n",
+    "            writer.add_graph(model=model, \n",
+    "                        # Pass in an example input\n",
+    "                        input_to_model=torch.randn(1, 3, 64, 64).to(device))\n",
+    "\n",
+    "    # Return the filled results at the end of the epochs\n",
+    "    return results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def save_model(model: torch.nn.Module,\n",
+    "               target_dir: str,\n",
+    "               model_name: str):\n",
+    "    \"\"\"Saves a PyTorch model to a target directory.\n",
+    "\n",
+    "    Args:\n",
+    "    model: A target PyTorch model to save.\n",
+    "    target_dir: A directory for saving the model to.\n",
+    "    model_name: A filename for the saved model. Should include\n",
+    "      either \".pth\" or \".pt\" as the file extension.\n",
+    "\n",
+    "    Example usage:\n",
+    "    save_model(model=model_0,\n",
+    "               target_dir=\"models\",\n",
+    "               model_name=\"05_going_modular_tingvgg_model.pth\")\n",
+    "    \"\"\"\n",
+    "    # Create target directory\n",
+    "    target_dir_path = Path(target_dir)\n",
+    "    target_dir_path.mkdir(parents=True,\n",
+    "                        exist_ok=True)\n",
+    "\n",
+    "    # Create model save path\n",
+    "    assert model_name.endswith(\".pth\") or model_name.endswith(\".pt\"), \"model_name should end with '.pt' or '.pth'\"\n",
+    "    model_save_path = target_dir_path / model_name\n",
+    "\n",
+    "    # Save the model state_dict()\n",
+    "    print(f\"[INFO] Saving model to: {model_save_path}\")\n",
+    "    torch.save(obj=model.state_dict(),\n",
+    "             f=model_save_path) "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "First, initialize the datasets and data loaders for both models."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Files already downloaded and verified\n",
+      "Files already downloaded and verified\n"
+     ]
+    }
+   ],
+   "source": [
+    "transform = create_transforms()\n",
+    "\n",
+    "# Load the CIFAR-100 training set\n",
+    "train_set = CIFAR100_loader(root='./data', train=True, download=True, transform=transform)\n",
+    "test_set = CIFAR100_loader(root='./data', train=False, download=True, transform=transform)\n",
+    "\n",
+    "train_loader = DataLoader(train_set,\n",
+    "                          batch_size=128,\n",
+    "                          shuffle=True, \n",
+    "                          num_workers=os.cpu_count(),\n",
+    "                          drop_last=True,\n",
+    "                          multiprocessing_context=\"fork\",\n",
+    "                          pin_memory=True)\n",
+    "\n",
+    "test_loader = DataLoader(test_set,\n",
+    "                            batch_size=128,\n",
+    "                            shuffle=False, \n",
+    "                            num_workers=os.cpu_count(),\n",
+    "                            drop_last=True,\n",
+    "                            multiprocessing_context=\"fork\",\n",
+    "                            pin_memory=True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Next, train the TwoLayerNet model on the CIFAR-100 dataset using the training data loader."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Training on device cpu.\n",
+      "[INFO] Created SummaryWriter, saving to: runs/cifar100/twolayernet/2022-06-04...\n",
+      "Training the model...\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "3663b997486f43da889235fb811380e5",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Epochs:   0%|          | 0/2 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "92c4b58a73c3409583c4365d92415b22",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Training Epoch 1:   0%|          | 0/390 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "230d40e0368740d5b93c8d36fc521149",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Testing Epoch 1:   0%|          | 0/78 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "Epoch: 1 | train_loss: 5.5607 | train_acc: 0.1024 | val_loss: 5.0819 | val_acc: 0.1216\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "8358451a1cce49d68c689c3337872dd8",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Training Epoch 2:   0%|          | 0/390 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "2fc4f3618ffd4e7f9689497792f2646f",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Testing Epoch 2:   0%|          | 0/78 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "Epoch: 2 | train_loss: 4.5650 | train_acc: 0.1612 | val_loss: 4.5552 | val_acc: 0.1553\n",
+      "Training took 24.64 seconds.\n",
+      "[INFO] Saving model to: models/twolayernet_cifar100.pth\n"
+     ]
+    }
+   ],
+   "source": [
+    "import torch\n",
+    "import torch.nn as nn\n",
+    "import torch.optim as optim\n",
+    "from timeit import default_timer as timer\n",
+    "\n",
+    "# Check if GPU is available and set the device\n",
+    "device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n",
+    "\n",
+    "# Initialize the model and move it to the appropriate device\n",
+    "TwoLayerNetModel = TwoLayerNet(3 * 64 * 64, 512, 100).to(device)\n",
+    "\n",
+    "# Create optimizer\n",
+    "optimizer = create_optimizer(TwoLayerNetModel, learning_rate=0.001)\n",
+    "\n",
+    "# Loss function\n",
+    "loss_fn = nn.CrossEntropyLoss()\n",
+    "\n",
+    "print(f\"Training on device {device}.\")\n",
+    "\n",
+    "# Initialize the weights of the model\n",
+    "for name, param in TwoLayerNetModel.named_parameters():  # Apply to the model instance\n",
+    "    if 'weight' in name:\n",
+    "        nn.init.xavier_normal_(param)\n",
+    "    if 'bias' in name:\n",
+    "        nn.init.zeros_(param)\n",
+    "\n",
+    "# Optional learning rate scheduler (if needed)\n",
+    "scheduler = None  # Define scheduler if needed\n",
+    "\n",
+    "# Writer\n",
+    "writer = create_writer(experiment_name=\"cifar100\",\n",
+    "                        model_name=\"twolayernet\",\n",
+    "                        timestamp=\"2022-06-04\")\n",
+    "\n",
+    "# writer.add_hparams(\n",
+    "#     hparam_dict={\"lr\": 0.001, \"batch_size\": 128},\n",
+    "#     metric_dict={\"accuracy\": 0.0}\n",
+    "# )\n",
+    "\n",
+    "# Start timer to track training time\n",
+    "train_time_start = timer()\n",
+    "print(\"Training the model...\")\n",
+    "\n",
+    "# Assuming the `train` function is defined elsewhere\n",
+    "train(model=TwoLayerNetModel,\n",
+    "      train_dataloader=train_loader,\n",
+    "      val_dataloader=test_loader,\n",
+    "      optimizer=optimizer,\n",
+    "      loss_fn=loss_fn,\n",
+    "      epochs=2,\n",
+    "      device=device,\n",
+    "      writer=writer,  # Pass TensorBoard writer or None if not using it\n",
+    "      learning_rate_scheduler=scheduler)\n",
+    "\n",
+    "# End timer\n",
+    "train_time_end = timer()\n",
+    "\n",
+    "# Print total training time\n",
+    "print(f\"Training took {train_time_end - train_time_start:.2f} seconds.\")\n",
+    "\n",
+    "# Save the model\n",
+    "save_model(model=TwoLayerNetModel,\n",
+    "           target_dir=\"models\",\n",
+    "           model_name=\"twolayernet_cifar100.pth\")\n",
+    "\n",
+    "writer.close()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Finally, train the ConvNet model on the CIFAR-100 dataset using the training data loader."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Training on device cpu.\n",
+      "[INFO] Created SummaryWriter, saving to: runs/cifar100/convnet/2022-06-04...\n",
+      "Training the model...\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "e0271ccf167c4b7d86e23c9b3a931b90",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Epochs:   0%|          | 0/2 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "4f42eccd50a44c5ab936d10a2a9ffb5b",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Training Epoch 1:   0%|          | 0/390 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "83725e5401924ef4b0103131daca41ee",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Testing Epoch 1:   0%|          | 0/78 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "Epoch: 1 | train_loss: 3.8791 | train_acc: 0.1191 | val_loss: 3.4611 | val_acc: 0.1877\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "a389600ce9624a3a8f806448f0efbdef",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Training Epoch 2:   0%|          | 0/390 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "9fe35b6fc94543da9f75b71b649f4a84",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Testing Epoch 2:   0%|          | 0/78 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "Epoch: 2 | train_loss: 3.1786 | train_acc: 0.2344 | val_loss: 3.0423 | val_acc: 0.2627\n",
+      "Training took 93.88 seconds.\n",
+      "[INFO] Saving model to: models/convnet_cifar100.pth\n"
+     ]
+    }
+   ],
+   "source": [
+    "import torch\n",
+    "import torch.nn as nn\n",
+    "import torch.optim as optim\n",
+    "from timeit import default_timer as timer\n",
+    "\n",
+    "# Check if GPU is available and set the device\n",
+    "device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n",
+    "\n",
+    "# Initialize the model and move it to the appropriate device\n",
+    "ConvNetModel = ConvNet().to(device)\n",
+    "\n",
+    "# Create optimizer\n",
+    "optimizer = create_optimizer(ConvNetModel, learning_rate=0.001)\n",
+    "\n",
+    "# Loss function\n",
+    "loss_fn = nn.CrossEntropyLoss()\n",
+    "\n",
+    "print(f\"Training on device {device}.\")\n",
+    "\n",
+    "# Initialize the weights of the model\n",
+    "for name, param in ConvNetModel.named_parameters():  # Apply to the model instance\n",
+    "    if 'weight' in name:\n",
+    "        nn.init.xavier_normal_(param)\n",
+    "    if 'bias' in name:\n",
+    "        nn.init.zeros_(param)\n",
+    "\n",
+    "# Optional learning rate scheduler (if needed)\n",
+    "scheduler = None  # Define scheduler if needed\n",
+    "\n",
+    "# Writer\n",
+    "writer = create_writer(experiment_name=\"cifar100\",\n",
+    "                        model_name=\"convnet\",\n",
+    "                        timestamp=\"2022-06-04\")\n",
+    "\n",
+    "# Start timer to track training time\n",
+    "train_time_start = timer()\n",
+    "print(\"Training the model...\")\n",
+    "\n",
+    "# Assuming the `train` function is defined elsewhere\n",
+    "train(model=ConvNetModel,\n",
+    "      train_dataloader=train_loader,\n",
+    "      val_dataloader=test_loader,\n",
+    "      optimizer=optimizer,\n",
+    "      loss_fn=loss_fn,\n",
+    "      epochs=2,\n",
+    "      device=device,\n",
+    "      writer=writer,  # Pass TensorBoard writer or None if not using it\n",
+    "      learning_rate_scheduler=scheduler)\n",
+    "\n",
+    "# End timer\n",
+    "train_time_end = timer()\n",
+    "\n",
+    "# Print total training time\n",
+    "print(f\"Training took {train_time_end - train_time_start:.2f} seconds.\")\n",
+    "\n",
+    "# Save the model\n",
+    "save_model(model=ConvNetModel,\n",
+    "           target_dir=\"models\",\n",
+    "           model_name=\"convnet_cifar100.pth\")\n",
+    "\n",
+    "writer.close()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-7\"></a>\n",
+    "### **Section 7: Setting Up the Hyperparameters (14 points)**\n",
+    "\n",
+    "In this section, you will experiment with both the `ConvNet` and `TwoLayerNet` models by setting up and tuning the hyperparameters to achieve the highest possible accuracy. You have the flexibility to modify the training process, including the `train` function, `DataLoader`, `transform` functions, and optimizer as needed.\n",
+    "\n",
+    "1. Adjust the hyperparameters, including learning rate, batch size, number of epochs, optimizer, weight decay, and transform function to improve the performance of both networks. Modify the training procedure and architecture as necessary. You can also add components like Batch Normalization layers.\n",
+    "2. Add two more layers to both `TwoLayerNet` and `ConvNet`. You can decide the size and placement of these layers. Evaluate if these changes result in higher performance and explain your findings.\n",
+    "3. Show the final results and describe the modifications made to enhance performance. Discuss the impact of hyperparameter tuning on both `TwoLayerNet` and `ConvNet`.\n",
+    "4. Compare the two networks in terms of architecture, performance, and learning rates. Provide a detailed explanation of the differences observed.\n",
+    "\n",
+    "**Note:** Do not use external pre-trained networks and limit additional convolutional layers to a maximum of three beyond the original architecture."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# YOUR CODE HERE"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Test the performance of TwoLayerNet after hyperparameter tuning and compare it with the ConvNet model. Provide a detailed explanation of the results."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# YOUR CODE HERE"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Test the performance of ConvNet after hyperparameter tuning and compare it with the TwoLayerNet model. Provide a detailed explanation of the results."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# YOUR CODE HERE"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-8\"></a>\n",
+    "### **Section 8: Visualizing the STL-10 Dataset and Preparing the Data Loader (3 points)**\n",
+    "\n",
+    "In this section, you will work with a subset of the [STL-10](https://cs.stanford.edu/~acoates/stl10/) dataset, containing higher resolution images and different object classes than CIFAR-100. Before fine-tuning your ConvNet on this dataset, first complete the `visualise_stl10` function to display sample images from the following 5 classes:\n",
+    "\n",
+    "1. **Bird**\n",
+    "2. **Deer**\n",
+    "3. **Dog**\n",
+    "4. **Horse**\n",
+    "5. **Monkey**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def visualise_stl10(class_mapping):\n",
+    "    '''\n",
+    "    Visualizes 5 images from each specified class in the STL-10 dataset.\n",
+    "\n",
+    "    Args:\n",
+    "        class_mapping (dict): A dictionary mapping class indices to class names.\n",
+    "    '''\n",
+    "\n",
+    "    # YOUR CODE HERE"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Define the class mapping for bird, deer, dog, horse, and monkey\n",
+    "class_mapping = {1: 'bird', 4: 'deer', 5: 'dog', 6: 'horse', 7: 'monkey'}\n",
+    "\n",
+    "# Visualize STL-10 classes\n",
+    "visualise_stl10(class_mapping)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "After visualizing the data, implement the `STL10_loader` class to create a custom data loader that initializes the dataset, extracts the target classes, and applies the necessary image transformations. Once these tasks are completed, you will move on to fine-tuning the ConvNet on this dataset in the next section."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "class STL10_loader(Dataset):\n",
+    "    def __init__(self, root, train=True, transform=None):\n",
+    "        '''\n",
+    "        Initializes the STL10 dataset.\n",
+    "\n",
+    "        Args:\n",
+    "            root (str): Root directory of the dataset.\n",
+    "            train (bool): If True, use the training set, otherwise use the test set.\n",
+    "            transform (callable, optional): A function/transform to apply to the images.\n",
+    "        '''\n",
+    "\n",
+    "        # YOUR CODE HERE\n",
+    "        \n",
+    "    def __len__(self):\n",
+    "        '''\n",
+    "        Returns the number of samples in the dataset.\n",
+    "        '''\n",
+    "\n",
+    "        # YOUR CODE HERE\n",
+    "\n",
+    "    def __getitem__(self, idx):\n",
+    "        '''\n",
+    "        Retrieves a sample from the dataset at the specified index.\n",
+    "\n",
+    "        Args:\n",
+    "            idx (int): The index of the sample to retrieve.\n",
+    "\n",
+    "        Returns:\n",
+    "            tuple: A tuple containing the transformed image and its target label.\n",
+    "        '''\n",
+    "\n",
+    "        # YOUR CODE HERE"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-9\"></a>\n",
+    "### **Section 9: Fine-tuning ConvNet on STL-10 (14 points)**\n",
+    "\n",
+    "In this section, you will load the pre-trained parameters of the ConvNet (trained on CIFAR-100) and modify the output layer to adapt it to the new dataset containing 5 classes. You can either first load the pre-trained parameters and then modify the output layer, or change the output layer before loading the matched pre-trained parameters. Once modified, you will train the model and document the settings of hyperparameters, accuracy, and learning curve. Additionally, visualize both the training loss and accuracy to assess the learning process. To gain a deeper understanding of the feature learning process, consider using techniques like [**t-sne**](https://lvdmaaten.github.io/tsne/) for feature space visualization."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# YOUR CODE HERE"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-10\"></a>\n",
+    "### **Section 10: Bonus Challenge (optional)**\n",
+    "\n",
+    "Try to achieve the highest possible accuracy on the test dataset (5 classes from STL-10) by adjusting hyperparameters, modifying architectures, or applying techniques like data augmentation. The top-performing teams will earn bonus points that can significantly boost their final lab grade, even allowing it to exceed 10 (up to 11):\n",
+    "\n",
+    "- **1st place:** +1.0 to the final grade of the final lab\n",
+    "- **2nd place:** +0.8 to the final grade of the final lab\n",
+    "- **3rd place:** +0.6 to the final grade of the final lab\n",
+    "- **4th place:** +0.4 to the final grade of the final lab\n",
+    "- **5th place:** +0.2 to the final grade of the final lab\n",
+    "\n",
+    "**Hint:** You may use techniques like data augmentation, freezing early layers, modifying architecture, or optimizing hyperparameters. Only data from CIFAR-100 and STL-10 can be used, and you cannot add more than 3 additional convolutional layers."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# YOUR CODE HERE"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id=\"section-x\"></a>\n",
+    "### **Section X: Individual Contribution Report *(Mandatory)***\n",
+    "\n",
+    "Because we want each student to contribute fairly to the submitted work, we ask you to fill out the textcells below. Write down your contribution to each of the assignment components in percentages. Naturally, percentages for one particular component should add up to 100% (e.g. 30% - 30% - 40%). No further explanation has to be given."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "| Name | Contribution on Research | Contribution on Programming | Contribution on Writing |\n",
+    "| -------- | ------- | ------- | ------- |\n",
+    "| Piotr | 33 % | 33 % | 34 % |\n",
+    "| Thomas  | 34 % | 33 % | 33 % |\n",
+    "| Pedro | 33 % | 34 % | 33 % |"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### - End of Notebook -"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "cv1",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.4"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
