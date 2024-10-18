@@ -1,24 +1,4 @@
 Trial,Parameters,Value
-0,"{'learning_rate': 0.0003629547368449779, 'weight_decay': 8.257171994007504e-05, 'optimizer': 'SGD', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.01695232780612245
-1,"{'learning_rate': 0.003923753406588134, 'weight_decay': 1.8436158412061505e-05, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.16716557716836736
-2,"{'learning_rate': 2.342750116552075e-05, 'weight_decay': 1.8856210322038523e-05, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.10665656887755101
-3,"{'learning_rate': 0.005999481045490675, 'weight_decay': 0.00013335021153643823, 'optimizer': 'SGD', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.05951052295918367
-4,"{'learning_rate': 0.0001745378870988, 'weight_decay': 8.713638426794228e-05, 'optimizer': 'SGD', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.010845822704081633
-5,"{'learning_rate': 0.007836015413318095, 'weight_decay': 2.0916470782993465e-05, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.12809510522959183
-6,"{'learning_rate': 0.007499880606117194, 'weight_decay': 0.0005434501324891635, 'optimizer': 'SGD', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.06426578443877551
-7,"{'learning_rate': 0.0007403372333615391, 'weight_decay': 1.2146391420638752e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.18649354272959184
-8,"{'learning_rate': 2.6338154710324288e-05, 'weight_decay': 0.000193912921454243, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.11532007334183673
-9,"{'learning_rate': 0.0005409464575807597, 'weight_decay': 1.3741712164525063e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.193148118622449
-10,"{'learning_rate': 0.07442415385290564, 'weight_decay': 4.2680654485359196e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.013384885204081631
-11,"{'learning_rate': 0.0007257623068531345, 'weight_decay': 1.0484873723777019e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.18641183035714287
-12,"{'learning_rate': 0.00026344425022818604, 'weight_decay': 1.0577352568717442e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.17377032844387755
-13,"{'learning_rate': 7.105905691319432e-05, 'weight_decay': 4.005157699029174e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.1374461894132653
-14,"{'learning_rate': 0.0016360648200374269, 'weight_decay': 3.861907629600319e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.19127072704081632
-15,"{'learning_rate': 0.0017464002901475557, 'weight_decay': 4.42288444744336e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.19236686862244898
-16,"{'learning_rate': 0.04448584215340077, 'weight_decay': 0.0002798403537543025, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.011079001913265305
-17,"{'learning_rate': 0.00197566536967812, 'weight_decay': 5.598015570491265e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.1908641581632653
-18,"{'learning_rate': 0.0185388492254783, 'weight_decay': 2.8910860558464233e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.06419802295918367
-19,"{'learning_rate': 0.00010801466883553017, 'weight_decay': 0.0007226854362667415, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.1465102838010204
 0,"{'learning_rate': 0.003240833266422206, 'weight_decay': 0.0002941484754257408, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.17443797831632651
 1,"{'learning_rate': 0.0017637758365124595, 'weight_decay': 0.00029604816578083755, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.18968630420918367
 2,"{'learning_rate': 4.9147284167045975e-05, 'weight_decay': 0.0004089639821744923, 'optimizer': 'SGD', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.01160514987244898
@@ -56,7 +36,7 @@ Trial,Parameters,Value
 34,"{'learning_rate': 0.0001360862961815185, 'weight_decay': 0.00032995836732137166, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.1556082589285714
 35,"{'learning_rate': 0.0005873133257191745, 'weight_decay': 8.046989732192817e-05, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.19389947385204082
 36,"{'learning_rate': 0.00029513152612124544, 'weight_decay': 5.9485932808382603e-05, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.1752052774234694
-37,"{'learning_rate': 0.0016438135961362715, 'weight_decay': 3.5477382723145316e-05, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.2016143176020408
+37,"{'learning_rate': 0.0016438135961362715, 'weight_decay': 3.5477382723145316e-05, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.2016143176020408
 38,"{'learning_rate': 0.0016093593581934245, 'weight_decay': 1.122983172500159e-05, 'optimizer': 'SGD', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.03846460459183674
 39,"{'learning_rate': 2.2059465483472368e-05, 'weight_decay': 4.604859559584372e-05, 'optimizer': 'Adam', 'epochs': 20, 'xavier_init': True, 'batch_size': 1024}",0.10709502551020408
 40,"{'learning_rate': 0.00418641959502169, 'weight_decay': 3.1133794594561286e-05, 'optimizer': 'AdamW', 'epochs': 20, 'xavier_init': False, 'batch_size': 1024}",0.16089564732142858
