@@ -1,2 +1,2 @@
-# Ignore .ipynb for statistics
-*.ipynb linguist-vendored
+# Consider JupyterNotebooks as Python
+*.ipynb linguist-language=Python
