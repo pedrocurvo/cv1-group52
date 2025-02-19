@@ -1,0 +1,352 @@
+\documentclass[12pt,a4paper,oneside]{paper}
+\input{./preamble}
+
+\usepackage[colorinlistoftodos]{todonotes}
+
+\addbibresource{bibliography.bib}
+\begin{document}
+\pagestyle{plain}
+
+
+% Title
+\def\title {Final Lab - Part I}
+
+% Input the cover
+\input{cover} 
+\cleardoublepage
+\fontfamily{cmr}\selectfont
+\setcounter{page}{0}
+\tableofcontents
+\newpage
+
+\small
+
+\section{Introduction}
+Computer vision and machine learning are both overlapping sub-areas of artificial intelligence.
+While computer vision focusses on processing and understanding visual data; such as images, machine learning generally covers optimizing a model based on data.
+One form of machine learning is called supervised learning, where a model is trained to predict a label based on features.
+Such a label could be continuous, meaning that there exists an infinite amount of possibilities similar to all real numbers on the interval between 0 and 1.
+Conversely, a label could also be discrete; thereby limiting the amount of possibilities to a finite set of labels such as a fixed number of categories.
+The type of supervised learning depends on the type of the present labels, being regression or classification should the labels be continuous or discrete respectively.
+
+One topic where computer vision and machine learning meet is the topic of image classification, where a computer recognises and classifies an object in an image. At first, this problem seems rather trivial since this task is done by humans all the time.
+Ironically, the \textit{xkcd} comic called 'Tasks' perfectly illustrates the underestimation of image classification. 
+The caption tells a story of how Marvin Minsky assigned a group of undergrad students to program a computer such that it could correctly recognise objects in pictures.
+Minsky believed that this assignment could have been completed by the end of the summer. 
+At the time of the comic's release, this was a problem to still be properly solved \todo{source}.
+
+What makes the image classification problem particularly difficult is the variety in data.
+Images taken off one single object alone are prone to factors such as lighting, scale, orientation, or occlusion.
+For that reason, it became imperative to find and develop methods which are invariant to (most of) such factors.
+One of those methods is to localise key-points in images invariant to these aforementioned factors.
+
+This part of the lab will focus on the use of the \textit{Bag of Visual Words} method to solve the image classification problem.
+% In short, this method creates 
+The classic \textit{Bag of Words} is originally a Natural Language Processing (NLP) method developed to process a passage of text where each word was considered independent of all other words, thereby losing its structure.
+In essence, the only collected data are the unique words present in the passage and how often each word occurs. 
+Regardless of this loss of structure, \textit{Bag of Words} could prove to be a simple yet effective method.
+
+The \textit{Bag of Visual Words} method works in a similar manner. 
+The words are replaced by patches of images.
+The key difference is that these patches are learned based on key-points and features of training images.
+As a result, a visual vocabulary can be constructed containing labelled patches of these key-points and features.
+
+The aim of this report is to compare two methods of detecting key-points to use for a bag of visual words: SIFT and ORB.
+SIFT (Scale-Invariant Feature Transformation) is a method for detecting key points that are invariant under scaling, rotation, scale, and affine grey scale variations.
+As a result, SIFT provides a robust method of comparing images based on extracted key-points (\cite{Lowe_2004}).
+In contrast, ORB (Oriented FAST and Rotated BRIEF) (\cite{6126544}) was released roughly a decade later as a faster and more efficient alternative to SIFT.
+ORB is built upon the FAST key-point extractor and BRIEF descriptor.
+Although FAST is a computationally efficient algorithm on its own for detecting key-points, it lacks the orientation property that is inherently present with key-points detected by SIFT.
+Equivalently, BRIEF has a similar performance compared to SIFT, sharing robustness for lighting, blur, and perspective distortion.
+Nevertheless, BRIEF is sensitive to in-plane rotation (\cite{Hutchison_Kanade_Kittler_Kleinberg_Mattern_Mitchell_Naor_Nierstrasz_PanduRangan_Steffen_et_al._2010}).
+
+\newpage
+\section{Method}
+% \begin{enumerate}
+%     \item Keypoint detection and feature extraction
+%     \item Building the visual vocabulary
+%     \item Encoding Train image features
+%     \item Visualising bag of visual words for each class
+%     \item Encoding test image features
+%     \item Training classifiers
+%     \item Evaluating classifiers
+%     \item Hyperparameter Search
+% \end{enumerate}
+\subsection{Data}
+The data used for this report is the \textit{CIFAR-10} dataset containing a total of 60000 labeled images divided over ten classes.
+Each class has a total 5000 training images and 1000 test images while all being mutually exclusive.
+Moreover, all images are coloured and have a resolution of 32 by 32 pixels (\cite{CIFAR-10}).
+For simplicity, this report will only utilise the following five classes: 'frog', 'automobile', 'bird', 'cat' and 'deer'.
+
+\subsection{Keypoint detection and feature extraction}
+The use of both ORB and SIFT is achieved by calling the \texttt{ORB\_create()} and \texttt{SIFT\_create()} functions from the \texttt{cv2} module.
+Before computing key-points, it is necessary to denormalise and resize the image to ensure proper computation, for this we choose to resize the image to 128 by 128 pixels.
+Without the denormalization, ORB fails to find any key-points. This happens because when the image size is small, such as 32x32 pixels, the spatial resolution is limited, making it difficult for ORB to identify meaningful features necessary for computing key points. ORB relies on gradients and corner responses for key point detection, but in smaller images, the lack of sufficient pixel data results in fewer variations in intensity, limiting the ability to evaluate distinct key points. Additionally, if the image data is normalized but not subsequently denormalized before being processed by ORB, the algorithm may incorrectly interpret the pixel values.
+A similar issue arises when using SIFT, but the algorithm is more robust to these issues due to its scale-invariant nature.
+A sample of the key-points detected by both ORB and SIFT is shown in figure \ref{fig:ORB_SIFT_keypoints}.
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=1\linewidth]{images/keypoints_orb.png}
+    % \caption{Plot displaying a $10$ of the $1000$ clusters, from the visual vocabulary using SIFT, after applying PCA. Do note the significant loss in data variance due to the large dimension reduction.}
+    \label{fig:ORB_keypoints}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=1\linewidth]{images/keypoints_sift.png}
+    % \caption{Plot displaying a $10$ of the $1000$ clusters, from the visual vocabulary using ORB, after applying PCA. Do note the significant loss in data variance due to the large dimension reduction.}
+    \label{fig:SIFT_keypoints}
+  \end{subfigure}
+  \caption{Plot displaying a $10$ of the key-points detected by ORB and SIFT.}
+  \label{fig:ORB_SIFT_keypoints}
+\end{figure}
+
+\subsection{Building the visual vocabulary}
+A visual vocabulary is needed in order to compute a feature representation of previously unseen images for each key-point extractor.
+For this report, both visual vocabularies are constructed based on 50\% of the training data, henceforth called the vocabulary data.
+Each key-point detector extracts features of all the images in the vocabulary data.
+ Descriptors are
+representations of the features surrounding each keypoint, meaning that, while keypoints are represented by their location, descriptors encapsulate local information around that point in a mathematical way.
+The corresponding descriptors of all key points are clustered together using the \textit{K-means clustering} method initially into $1000$ clusters.
+It is preferable to utilize such a simple clustering method in order to reduce computational complexity since this report works with high-dimensional data.
+Despite this high dimension, it is possible to plot (a subset) of the clusters using PCA (Principal Component Analysis) as shown in figure \ref{fig:ORB_SIFT_clusters_50}.
+% As a consequence, most of the data variance is lost due to the serious reduction in dimensionality.
+% Despite this loss, 
+
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=1\linewidth]{images/SIFT clusters 50.png}
+    % \caption{Plot displaying a $10$ of the $1000$ clusters, from the visual vocabulary using SIFT, after applying PCA. Do note the significant loss in data variance due to the large dimension reduction.}
+    \label{fig:SIFT_clusters_50}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=1\linewidth]{images/ORB clusters 50.png}
+    % \caption{Plot displaying a $10$ of the $1000$ clusters, from the visual vocabulary using ORB, after applying PCA. Do note the significant loss in data variance due to the large dimension reduction.}
+    \label{fig:ORB_clusters_50}
+  \end{subfigure}
+  \caption{Plot displaying ten of the $1000$ clusters, from the visual vocabulary using both SIFT and ORB, after applying PCA. The distance between the clusters in PCA is not representative of their true distance due to the loss of variance.}
+  \label{fig:ORB_SIFT_clusters_50}
+\end{figure}
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.5\linewidth]{images/SIFT clusters 50.png}
+%     \caption{Plot displaying a $10$ of the $1000$ clusters, from the visual vocabulary using SIFT, after applying PCA. Do note the significant loss in data variance due to the large dimension reduction.}
+%     \label{fig:SIFT_clusters_50}
+% \end{figure}
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.5\linewidth]{images/ORB clusters 50.png}
+%     \caption{Plot displaying a $10$ of the $1000$ clusters, from the visual vocabulary using ORB, after applying PCA. Do note the significant loss in data variance due to the large dimension reduction.}
+%     \label{fig:ORB_clusters_50}
+% \end{figure}
+
+\newpage
+\subsection{Encoding test and train image features}
+All images in the test and remaining training dataset have to be encoded based on a visual vocabulary to be properly processed.
+The process for both key-point detectors is similar, starting with extracting key-points and descriptors from all images.
+Following this, all descriptors are matched to the closest cluster in the corresponding visual vocabulary depending on the used key-point extractor. 
+A normalized histogram can therefore be constructed for all images based on the matching clusters.
+The average normalized histograms for both key-point extractors are displayed in such as in figure \ref{fig:Histograms}.
+
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.95\textwidth}
+    \includegraphics[width=1\linewidth]{images/SIFT_histogram.png}
+    % \caption{Plot displaying a $10$ of the $1000$ clusters, from the visual vocabulary using SIFT, after applying PCA. Do note the significant loss in data variance due to the large dimension reduction.}
+    \label{fig:SIFT_clusters_50}
+  \end{subfigure}
+  \vfill
+  \begin{subfigure}[b]{0.95\textwidth}
+    \includegraphics[width=1\linewidth]{images/ORB_histogram.png}
+    % \caption{Plot displaying a $10$ of the $1000$ clusters, from the visual vocabulary using ORB, after applying PCA. Do note the significant loss in data variance due to the large dimension reduction.}
+    \label{fig:ORB_clusters_50}
+  \end{subfigure}
+  \caption{Plots displaying the average normalized histograms for the bag of visual words created using SIFT and ORB.}
+  \label{fig:Histograms}
+\end{figure}
+
+
+% For each image in the train and test set
+% - Collect key-points and its descriptors of an image
+% - For each descriptor image, determine the closest cluster belonging to the visual vocab
+% - Collect all the results in a histogram and normalize if necessary
+
+% \newpage
+\subsection{Training and evaluating classifiers}
+Two one-vs-rest (OvR) classifiers are created, one for each key-point extractor, allowing each class to have a model that predicts the probability of an image belonging to that class. For example, the model for the ‘automobile’ class determines whether an image depicts an automobile. As a result, there are a total of ten models created.
+
+A model itself is an SVC (Support Vector Classifier) of the \texttt{sklearn.svm} module.
+After defining the SVC, the models for each class are defined using the \texttt{OneVsRestClassifier} function belonging to the \texttt{sklearn.svm} module as well.
+Finally, the models can simply be fitted to the remaining training data.
+
+% Creating and training the classifiers:
+% - Two one versus the rest (OvR) classifiers for each class (so a total of 10 divided over 2 key-point extractors)
+% - Encode the test and remaining training data as per the aforementioned instructions
+% - Each classifier is a Support Vector Classifier (SVC) from sklearn.svm
+% - Both OvRs are trained on training data by 'simply' fitting the data using sklearn functions
+% - Both OvRs are tested on the test data by 'simply' calling the predict function of sklearn
+% - Report results such as in tables 1 and 3
+
+
+
+\newpage
+\section{Results}
+% \subsection{SIFT}
+Both models, using SIFT and ORB, were evaluated on the test data using the \texttt{classification\_report} and \texttt{accuracy\_score} functions from the \texttt{sklearn.metrics} module. 
+Table \ref{tab:SIFT_prf1s} and \ref{tab:ORB_prf1s} display the precision, recall, f1-score and support for the bag of visual words model using SIFT and ORB as a key-point extractor respectively.
+The results of both tables seem to favour SIFT since the precision, recall and f1-score are generally larger for SIFT.
+The average precision of both key-point extractors, as shown in tables \ref{tab:SIFT_map} and \ref{tab:ORB_map}, support this by presenting a mean average precision of $0.3160$ for SIFT and $0.2273$ for ORB.
+Based on this data, assumptions, and parameters; the SIFT key-point detector outperforms ORB when both are used for a classifier based on a bag of visual words.
+
+\newpage
+\begin{table}[t]
+    \centering
+    \begin{tabular}{||l||l|l|l|l||}
+        \hline
+        SIFT         & precision & recall & f1-score & support \\
+        \hline
+        frog         & 0.30      & 0.23   & 0.26     & 200     \\
+        automobile   & 0.48      & 0.67   & 0.56     & 200     \\
+        bird         & 0.36      & 0.50   & 0.42     & 200     \\
+        cat          & 0.28      & 0.21   & 0.24     & 200     \\
+        deer         & 0.29      & 0.21   & 0.24     & 200     \\
+        \hline \hline
+        accuracy     &           &        & 0.36     & 1000    \\
+        macro avg    & 0.34      & 0.36   & 0.34     & 1000    \\
+        weighted avg & 0.34      & 0.36   & 0.34     & 1000    \\
+        \hline
+    \end{tabular}
+    \caption{Precision, recall, F1-score and support of a bag of visual words model using SIFT as a keypoint extractor. The format and all results are obtained using the functions \texttt{classification\_report} and \texttt{accuracy\_score} from the module \texttt{sklearn.metrics}.}
+    \label{tab:SIFT_prf1s}
+\end{table}
+
+% \newpage
+\begin{table}[h]
+    \centering
+    \begin{tabular}{||l|l||}
+        \hline
+        Class      & AP using SIFT \\
+        \hline
+        Frog       & 0.2502 \\
+        Automobile & 0.5947 \\
+        Bird       & 0.4227 \\
+        Cat        & 0.2713 \\
+        Deer       & 0.2659 \\
+        \hline \hline
+        mAP        & 0.3610 \\
+        \hline
+    \end{tabular}
+    \caption{Average precision for each class using SIFT as a key-point extractor}
+    \label{tab:SIFT_map}
+\end{table}
+
+\begin{figure}[b]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/SIFT ranked images automobile.png}
+    \caption{Collection of the best and worst matches using the SIFT key-point extractor for the class 'automobile'. The top and bottom row display the best and worst matches respectively where the left image is either the best or the worst.}
+    \label{fig:SIFT_qualitative}
+\end{figure}
+
+% \subsection{ORB}
+% After initial training: \\
+
+\newpage
+\begin{table}[t]
+    \centering
+        \begin{tabular}{||l||l|l|l|l||}
+        \hline
+        ORB          & precision & recall & f1-score & support \\
+        \hline
+        frog         & 0.24      & 0.23   & 0.23     & 200     \\
+        automobile   & 0.23      & 0.23   & 0.23     & 200     \\
+        bird         & 0.23      & 0.26   & 0.25     & 200     \\
+        cat          & 0.15      & 0.12   & 0.13     & 200     \\
+        deer         & 0.26      & 0.30   & 0.28     & 200     \\
+        \hline \hline
+        accuracy     &           &        & 0.23     & 1000    \\
+        macro avg    & 0.22      & 0.23   & 0.22     & 1000    \\
+        weighted avg & 0.22      & 0.23   & 0.22     & 1000    \\
+        \hline
+    \end{tabular}
+    \caption{Precision, recall, F1-score and support of a bag of visual words model using ORB as a keypoint extractor. The format and all results are obtained using the functions \texttt{classification\_report} and \texttt{accuracy\_score} from the module \texttt{sklearn.metrics}.}
+    \label{tab:ORB_prf1s}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{||l|l||}
+        \hline
+        Class      & AP using ORB \\
+        \hline
+        Frog       & 0.2221 \\
+        Automobile & 0.2282 \\
+        Bird       & 0.2283 \\
+        Cat        & 0.1990 \\
+        Deer       & 0.2591 \\
+        \hline \hline
+        mAP        & 0.2273 \\
+        \hline
+    \end{tabular}
+    \caption{Average precision for each class using ORB as a key-point extractor}
+    \label{tab:ORB_map}
+\end{table}
+
+\begin{figure}[b]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/ORB ranked images automobile.png}
+    \caption{Collection of the best and worst matches using the ORB key-point extractor for the class 'automobile'. The top and bottom row display the best and worst matches respectively where the left image is either the best or the worst.}
+    \label{fig:ORB_qualitative}
+\end{figure}
+
+\newpage
+\section{Discussion}
+As stated in the method section, some concessions have been made for the sake of simplicity.
+First of all, only five of the ten classes are used for classification.
+It is possible that either one or both of the key-point detectors perform better with one or more of the unused classes.
+Furthermore, the bag of visual words utilises the K-means clustering method.
+Despite its effectiveness, it fails to convey certain structures in the data.
+A better alternative would be the Gaussian Mixture models, which are capable of adapting to shapes in the data, instead of ball-shaped clusters like K-means. GMMs allow each cluster to have its own covariance, enabling them to capture elliptical or irregular shapes. 
+
+Both models contain five hyperparameters which can be tuned to optimize classification: number of clusters, training data subset used for the visual vocabulary, type of kernel function, regularization parameter and kernel coefficient \texttt{C} for the SVC.
+In the search for a more optimal model, the classifiers for both key-point detectors were trained with the following values for all hyperparameters:
+
+\begin{verbatim}
+    param_grid = {
+        'num_visual_words': [500, 1000, 1500]  (number of clusters)
+        'subset_size': [30, 40, 50]            (training subset for BoVW)
+        'svm_kernel': ['linear', 'rbf']        (type of svm kernel function)
+        'svm_C': [0.1, 1, 10]                  (kernel coefficient)
+        'svm_gamma': ['scale', 0.01, 0.001]    (kernel gamma)
+    }
+\end{verbatim}
+
+After training and validation, both models showed the best mean average precision with 500 clusters, a training subset of 50\%, a radial basis function kernel, a kernel coefficient of 0.1 and a scaling kernel gamma.
+The classifier using SIFT has a mean average precision of 0.4306 while the classifier using ORB has a mean average precision of 0.2567.
+Therefore, the classifier using SIFT as a key-point detector still scores a better accuracy after hyperparameter tuning.
+
+
+
+% \newpage
+% \section{Conclusion}
+% \todo{References}
+
+% \todo{Appendix}
+
+
+\clearpage
+
+\appendix
+
+
+\newpage
+\printbibliography
+
+\end{document}
+
